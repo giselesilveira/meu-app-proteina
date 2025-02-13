@@ -1,7 +1,7 @@
-import React from "react";
 "use client";
 
 import { useState } from "react";
+import React from "react";
 
 const alimentos = {
   "Peito de Frango": { proteinaPor100g: 31, unidade: "1 porção (100g cozido)" },
