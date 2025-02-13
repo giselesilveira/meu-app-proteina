@@ -32,7 +32,8 @@ export default function Home() {
 
   };
 
-  const handleChange = (alimento, tipo, quantidade) => {
+  const handleChange = (alimento: string, tipo: string, quantidade: string) => {
+
     setConsumo((prev) => ({
       ...prev,
       [alimento]: { ...prev[alimento], [tipo]: parseFloat(quantidade) || 0 },
