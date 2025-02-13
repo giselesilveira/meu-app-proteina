@@ -22,12 +22,14 @@ const alimentos = {
 
 export default function Home() {
   const [peso, setPeso] = useState("");
-  const [proteinaDiaria, setProteinaDiaria] = useState(null);
+  const [proteinaDiaria, setProteinaDiaria] = useState<number | null>(null);
+
   const [consumo, setConsumo] = useState({});
 
   const calcularProteina = () => {
     if (!peso) return;
-    setProteinaDiaria(Number((parseFloat(peso) * 1.5).toFixed(1)));
+    setProteinaDiaria(parseFloat((parseFloat(peso) * 1.5).toFixed(1)));
+
   };
 
   const handleChange = (alimento, tipo, quantidade) => {
