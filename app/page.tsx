@@ -36,8 +36,9 @@ export default function Home() {
 
     setConsumo((prev) => ({
       ...prev,
-      [alimento]: { ...prev[alimento], [tipo]: parseFloat(quantidade) || 0 },
+      [alimento]: { ...(prev as Record<string, any>)[alimento], [tipo]: parseFloat(quantidade) || 0 },
     }));
+    
   };
 
   const totalConsumido = Object.entries(consumo).reduce((total, [alimento, valores]) => {
