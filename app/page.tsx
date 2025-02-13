@@ -1,3 +1,4 @@
+import React from "react";
 "use client";
 
 import { useState } from "react";
@@ -30,80 +31,79 @@ export default function Home() {
     setProteinaDiaria(parseFloat((parseFloat(peso) * 1.5).toFixed(1)));
   };
 
-  type Consumo = Record<string, { unidade?: number; gramas?: number }>;
-
-const handleChange = (alimento: string, tipo: string, quantidade: string) => {
-  setConsumo((prev: Consumo) => ({
-    ...prev,
-    [alimento]: {
-      ...prev[alimento],
-      [tipo]: parseFloat(quantidade) || 0,
-    },
-  }));
-};
-
+  const handleChange = (alimento: string, tipo: "unidade" | "gramas", quantidade: string) => {
+    setConsumo((prev) => ({
+      ...prev,
+      [alimento]: {
+        ...prev[alimento],
+        [tipo]: parseFloat(quantidade) || 0,
+      },
+    }));
+  };
 
   const totalConsumido = Object.entries(consumo).reduce((total, [alimento, valores]) => {
-    const proteinaPor100g = alimentos[alimento].proteinaPor100g;
+    const proteinaPor100g = alimentos[alimento]?.proteinaPor100g || 0;
     const porUnidade = valores.unidade ? valores.unidade * (proteinaPor100g / 100) * 100 : 0;
     const porPeso = valores.gramas ? (valores.gramas * proteinaPor100g) / 100 : 0;
     return total + porPeso + porUnidade;
   }, 0).toFixed(1);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-300 to-blue-300 p-4">
-      <div className="w-full max-w-lg bg-white shadow-2xl rounded-2xl p-8">
-        <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-6">💪 Calculadora de Proteína</h1>
-        
-        <label className="block text-gray-700 text-sm font-medium">Informe seu peso (kg):</label>
+    <div className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-r from-indigo-400 to-blue-400 p-6">
+      <div className="w-full max-w-lg bg-white shadow-2xl rounded-3xl p-10">
+        <h1 className="text-5xl font-black text-center text-gray-900 mb-6">💪 Calculadora de Proteína</h1>
+
+        <label className="block text-gray-800 text-base font-medium">Informe seu peso (kg):</label>
         <input
           type="number"
           value={peso}
           onChange={(e) => setPeso(e.target.value)}
           placeholder="Ex: 70"
-          className="w-full p-3 border rounded-lg mt-2 text-gray-900 font-semibold bg-gray-100 focus:ring-4 focus:ring-purple-600"
+          className="w-full p-4 border rounded-xl mt-2 text-gray-900 font-semibold bg-gray-100 focus:ring-4 focus:ring-indigo-600"
         />
-        
+
         <button
           onClick={calcularProteina}
-          className="w-full bg-purple-700 text-white p-3 rounded-lg mt-4 hover:bg-purple-800 transition font-semibold shadow-md"
+          className="w-full bg-indigo-700 text-white p-4 rounded-xl mt-4 hover:bg-indigo-800 transition font-bold shadow-lg"
         >
           Calcular
         </button>
 
-        {proteinaDiaria && (
+        {proteinaDiaria !== null && (
           <div className="text-center mt-6">
-            <p className="text-xl text-gray-700">
-              🎯 Você precisa de <span className="font-bold text-purple-800 text-3xl">{proteinaDiaria}g</span> de proteína por dia.
+            <p className="text-2xl text-gray-800">
+              🎯 Sua meta diária: <span className="font-extrabold text-indigo-800 text-4xl">{proteinaDiaria}g</span>
             </p>
           </div>
         )}
 
-        {proteinaDiaria && (
+        {proteinaDiaria !== null && (
           <div className="mt-6">
-            <h2 className="text-xl font-semibold text-gray-900 text-center">📊 Registre seu consumo:</h2>
+            <h2 className="text-2xl font-bold text-gray-900 text-center">📊 Registre seu consumo:</h2>
 
-            <h3 className="text-2xl font-bold text-green-700 text-center mt-5">
+            <h3 className="text-3xl font-extrabold text-green-700 text-center mt-5">
               Total Consumido: {totalConsumido}g
             </h3>
 
             {Object.keys(alimentos).map((alimento) => (
-              <div key={alimento} className="bg-gray-50 rounded-lg p-4 mt-4 shadow-md border border-gray-300">
-                <h3 className="text-gray-900 font-semibold">{alimento}</h3>
-                <div className="flex justify-between items-center mt-2">
-                  <label className="text-gray-700 text-sm">{alimentos[alimento].unidade}:</label>
+              <div key={alimento} className="bg-gray-50 rounded-xl p-5 mt-4 shadow-md border border-gray-300">
+                <h3 className="text-gray-900 font-bold text-lg">{alimento}</h3>
+                <div className="flex justify-between items-center mt-3">
+                  <label className="text-gray-800 text-sm">{alimentos[alimento].unidade}:</label>
                   <input
                     type="number"
+                    min="0"
                     onChange={(e) => handleChange(alimento, "unidade", e.target.value)}
-                    className="w-20 p-2 border rounded-lg text-center text-gray-900 font-semibold bg-gray-200 focus:ring-2 focus:ring-purple-500"
+                    className="w-24 p-2 border rounded-lg text-center text-gray-900 font-semibold bg-gray-200 focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
-                <div className="flex justify-between items-center mt-2">
-                  <label className="text-gray-700 text-sm">Gramas (g cozido):</label>
+                <div className="flex justify-between items-center mt-3">
+                  <label className="text-gray-800 text-sm">Gramas (g cozido):</label>
                   <input
                     type="number"
+                    min="0"
                     onChange={(e) => handleChange(alimento, "gramas", e.target.value)}
-                    className="w-20 p-2 border rounded-lg text-center text-gray-900 font-semibold bg-gray-200 focus:ring-2 focus:ring-purple-500"
+                    className="w-24 p-2 border rounded-lg text-center text-gray-900 font-semibold bg-gray-200 focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               </div>
