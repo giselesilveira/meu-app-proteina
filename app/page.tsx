@@ -27,7 +27,7 @@ export default function Home() {
 
   const calcularProteina = () => {
     if (!peso) return;
-    setProteinaDiaria((parseFloat(peso) * 1.5).toFixed(1));
+    setProteinaDiaria(Number((parseFloat(peso) * 1.5).toFixed(1)));
   };
 
   const handleChange = (alimento, tipo, quantidade) => {
