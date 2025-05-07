@@ -24,13 +24,11 @@ export default function Home() {
     { nome: "Sardinha Lata", proteinaPor100g: 24 },
     { nome: "Tofu", proteinaPor100g: 8 },
     { nome: "Whey Protein", proteinaPorUnidade: 20, proteinaPor100g: 80 },
-    { nome: "Ovos de Codorna", proteinaPor100g: 13 },
-    { nome: "Ovos de Codorna (unidade)", proteinaPorUnidade: 1.3 },
-    { nome: "Iogurte do Tambo", proteinaPor100g: 4.8 },
-    { nome: "Iogurte do Tambo (pote 200g)", proteinaPorUnidade: 9.6 },
-    { nome: "Proteína do Colágeno", proteinaPor100g: 90 },
-    { nome: "Sobrecoxa de Frango", proteinaPor100g: 25 },
-    { nome: "Coxa de Frango", proteinaPor100g: 27 },
+    { nome: "Ovos de Codorna", proteinaPorUnidade: 1.3, proteinaPor100g: 13 },
+    { nome: "Iogurte do Tambo", proteinaPorUnidade: 9.6, proteinaPor100g: 4.8 },
+    { nome: "Proteína do Colágeno", proteinaPorUnidade: 20, proteinaPor100g: 90 },
+    { nome: "Sobrecoxa de Frango", proteinaPorUnidade: 7, proteinaPor100g: 25 },
+    { nome: "Coxa de Frango", proteinaPorUnidade: 8, proteinaPor100g: 27 },
     { nome: "Carne Moída", proteinaPor100g: 26 },
     { nome: "Peixe Cru (Sushi)", proteinaPor100g: 20 },
     { nome: "Carne de Porco", proteinaPor100g: 27 },
@@ -104,7 +102,7 @@ export default function Home() {
           <p className="text-gray-600 mb-4">Insira a quantidade de proteína consumida em cada alimento.</p>
 
           <div className="mt-4 space-y-4">
-            {alimentos.map(({ nome, proteinaPorUnidade }) => (
+            {alimentos.map(({ nome }) => (
               <div key={nome} className="border rounded-lg p-4 bg-gray-50 shadow-sm">
                 <p className="font-semibold mb-2 text-center">{nome}</p>
                 <label className="block text-gray-700 text-sm mb-1">Gramas:</label>
@@ -114,9 +112,11 @@ export default function Home() {
                   onChange={(e) => handleChange(nome, parseFloat(e.target.value) || 0, false)}
                   className="w-full p-2 border rounded-lg text-gray-900 font-semibold bg-gray-100 focus:ring-2 focus:ring-purple-600"
                 />
-                {proteinaPorUnidade && (
+                {(nome === "Ovos Cozidos" || nome === "Queijo Minas" || nome === "Whey Protein" || nome === "Ovos de Codorna" || nome === "Iogurte do Tambo" || nome === "Proteína do Colágeno" || nome === "Sobrecoxa de Frango" || nome === "Coxa de Frango") && (
                   <>
-                    <label className="block text-gray-700 text-sm mb-1 mt-2">Unidade:</label>
+                    <label className="block text-gray-700 text-sm mb-1 mt-2">
+                      {nome === "Whey Protein" || nome === "Proteína do Colágeno" ? "Scoop:" : nome === "Iogurte do Tambo" ? "Pote (200g):" : "Unidade:"}
+                    </label>
                     <input
                       type="number"
                       min="0"
