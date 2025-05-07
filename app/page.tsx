@@ -112,7 +112,7 @@ export default function Home() {
                   onChange={(e) => handleChange(nome, parseFloat(e.target.value) || 0, false)}
                   className="w-full p-2 border rounded-lg text-gray-900 font-semibold bg-gray-100 focus:ring-2 focus:ring-purple-600"
                 />
-                {(nome === "Ovos Cozidos" || nome === "Queijo Minas" || nome === "Whey Protein" || nome === "Ovos de Codorna" || nome === "Iogurte do Tambo" || nome === "Proteína do Colágeno" || nome === "Sobrecoxa de Frango" || nome === "Coxa de Frango") && (
+                {(nome === "Ovos Cozidos" || nome === "Queijo Minas" || nome === "Whey Protein" || nome === "Ovos de Codorna" || nome === "Iogurte do Tambo" || nome === "Proteína do Colágeno") && (
                   <>
                     <label className="block text-gray-700 text-sm mb-1 mt-2">
                       {nome === "Whey Protein" || nome === "Proteína do Colágeno" ? "Scoop:" : nome === "Iogurte do Tambo" ? "Pote (200g):" : "Unidade:"}
