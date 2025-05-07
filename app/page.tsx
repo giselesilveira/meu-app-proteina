@@ -24,6 +24,19 @@ export default function Home() {
     { nome: "Sardinha Lata", proteinaPor100g: 24 },
     { nome: "Tofu", proteinaPor100g: 8 },
     { nome: "Whey Protein", proteinaPorUnidade: 20, proteinaPor100g: 80 }
+    { nome: "Ovos de Codorna", proteinaPor100g: 13 }, 
+{ nome: "Ovos de Codorna (unidade)", proteinaPor100g: 1.3 }, 
+{ nome: "Iogurte do Tambo", proteinaPor100g: 4.8 }, 
+{ nome: "Iogurte do Tambo (pote 200g)", proteinaPor100g: 9.6 }, 
+{ nome: "Proteína do Colágeno", proteinaPor100g: 90 }, 
+{ nome: "Sobrecoxa de Frango", proteinaPor100g: 25 }, 
+{ nome: "Coxa de Frango", proteinaPor100g: 27 }, 
+{ nome: "Carne Moída", proteinaPor100g: 26 }, 
+{ nome: "Peixe Cru (Sushi)", proteinaPor100g: 20 }, 
+{ nome: "Carne de Porco", proteinaPor100g: 27 }, 
+{ nome: "Coração de Frango", proteinaPor100g: 28 }, 
+{ nome: "Fígado (Bovino)", proteinaPor100g: 27 }
+
   ];
 
   const calcularProteina = () => {
