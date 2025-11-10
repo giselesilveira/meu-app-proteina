@@ -1,98 +1,54 @@
 'use client';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 export default function Home() {
   const [peso, setPeso] = useState('');
-  const [proteina, setProteina] = useState<number | null>(null);
+  const [resultado, setResultado] = useState('');
 
-  const handleCalcular = () => {
+  const calcularProteina = () => {
     const pesoNumber = parseFloat(peso.replace(',', '.'));
-    if (!isNaN(pesoNumber)) {
-      const resultado = pesoNumber * 1.8;
-      setProteina(resultado);
-    } else {
-      setProteina(null);
+    if (isNaN(pesoNumber)) {
+      setResultado('Por favor, insira um peso válido.');
+      return;
     }
+
+    const gramas = pesoNumber * 1.8;
+    setResultado(`Você precisa de aproximadamente ${gramas.toFixed(0)}g de proteína por dia.`);
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      background: 'linear-gradient(to bottom, #ffffff, #f3f3f3)',
-      padding: '20px'
-    }}>
-      <div style={{
-        background: '#fff',
-        padding: '40px',
-        borderRadius: '16px',
-        boxShadow: '0 0 20px rgba(0,0,0,0.1)',
-        maxWidth: '500px',
-        width: '100%',
-        textAlign: 'center',
-        fontFamily: 'sans-serif'
-      }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-b from-white to-gray-100">
+      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
+        <h1 className="mb-4 text-center text-2xl font-bold text-gray-800">
           Calculadora de Proteína | Nutri Gisele Silveira
         </h1>
-        <p style={{ fontSize: '16px', color: '#555', marginBottom: '32px' }}>
+        <p className="mb-6 text-center text-gray-600">
           Use a calculadora para descobrir sua meta ideal diária. O valor sugerido é uma média baseada em 1,8g por kg de peso corporal.
         </p>
-
-        <label
-          style={{
-            display: 'block',
-            marginBottom: '8px',
-            textAlign: 'left',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            color: '#666'
-          }}
-        >
-          Seu peso (kg):
-        </label>
-        <input
-          type="number"
-          inputMode="decimal"
-          value={peso}
-          onChange={(e) => setPeso(e.target.value)}
-          placeholder="Digite seu peso"
-          style={{
-            width: '100%',
-            padding: '12px',
-            borderRadius: '8px',
-            border: '1px solid #ccc',
-            marginBottom: '24px',
-            fontSize: '16px',
-          }}
-        />
-
+        <div className="mb-4">
+          <label htmlFor="peso" className="mb-2 block text-sm font-medium text-gray-700">
+            Seu peso (kg):
+          </label>
+          <input
+            type="number"
+            inputMode="decimal"
+            id="peso"
+            value={peso}
+            onChange={(e) => setPeso(e.target.value)}
+            className="w-full rounded-md border border-gray-300 p-2 text-center text-lg focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+            placeholder="Ex: 70"
+          />
+        </div>
         <button
-          onClick={handleCalcular}
-          style={{
-            width: '100%',
-            padding: '14px',
-            backgroundColor: '#7C3AED',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            transition: 'background-color 0.3s ease'
-          }}
+          onClick={calcularProteina}
+          className="w-full rounded-md bg-purple-600 p-3 text-white transition hover:bg-purple-700"
         >
           Calcular
         </button>
-
-        {proteina !== null && (
-          <p style={{ marginTop: '24px', fontSize: '18px', fontWeight: 'bold' }}>
-            Você precisa de aproximadamente <strong>{proteina.toFixed(0)}g</strong> de proteína por dia.
-          </p>
+        {resultado && (
+          <p className="mt-6 text-center text-lg font-semibold text-gray-800">{resultado}</p>
         )}
       </div>
-    </div>
+    </main>
   );
 }
