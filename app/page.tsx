@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 export default function Home() {
   const [peso, setPeso] = useState('');
+  const [fator, setFator] = useState(1.8);
   const [resultado, setResultado] = useState('');
 
   const calcularProteina = () => {
@@ -12,7 +13,7 @@ export default function Home() {
       return;
     }
 
-    const gramas = pesoNumber * 1.8;
+    const gramas = pesoNumber * fator;
     setResultado(`Você precisa de aproximadamente ${gramas.toFixed(0)}g de proteína por dia.`);
   };
 
@@ -23,8 +24,9 @@ export default function Home() {
           Calculadora de Proteína | Nutri Gisele Silveira
         </h1>
         <p className="mb-6 text-center text-gray-600">
-          Use a calculadora para descobrir sua meta ideal diária. O valor sugerido é uma média baseada em 1,8g por kg de peso corporal.
+          Use a calculadora para descobrir sua meta ideal diária. O valor sugerido é uma média entre 1,5g e 2,0g por kg de peso corporal.
         </p>
+
         <div className="mb-4">
           <label htmlFor="peso" className="mb-2 block text-sm font-medium text-gray-700">
             Seu peso (kg):
@@ -39,12 +41,35 @@ export default function Home() {
             placeholder="Ex: 70"
           />
         </div>
+
+        <div className="mb-4">
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Quantidade de proteína por kg:
+          </label>
+          <div className="flex justify-between">
+            {[1.5, 1.8, 2.0].map((valor) => (
+              <button
+                key={valor}
+                onClick={() => setFator(valor)}
+                className={`flex-1 mx-1 rounded-md border p-2 text-sm font-medium ${
+                  fator === valor
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-white text-gray-700 border-gray-300'
+                }`}
+              >
+                {valor}g/kg
+              </button>
+            ))}
+          </div>
+        </div>
+
         <button
           onClick={calcularProteina}
           className="w-full rounded-md bg-purple-600 p-3 text-white transition hover:bg-purple-700"
         >
           Calcular
         </button>
+
         {resultado && (
           <p className="mt-6 text-center text-lg font-semibold text-gray-800">{resultado}</p>
         )}
