@@ -27,6 +27,8 @@ export default function Home() {
     { nome: "Ovos de Codorna", proteinaPorUnidade: 1.3, proteinaPor100g: 13 },
     { nome: "Iogurte do Tambo", proteinaPorUnidade: 9.6, proteinaPor100g: 4.8 },
     { nome: "Proteína do Colágeno", proteinaPorUnidade: 20, proteinaPor100g: 90 },
+    { nome: "Beef Protein", proteinaPorUnidade: 25, proteinaPor100g: 90 },
+    { nome: "Clara de Ovo (de galinha)", proteinaPorUnidade: 3.6, proteinaPor100g: 11 },
     { nome: "Sobrecoxa de Frango", proteinaPor100g: 25 },
     { nome: "Coxa de Frango", proteinaPor100g: 27 },
     { nome: "Carne Moída", proteinaPor100g: 26 },
@@ -112,10 +114,23 @@ export default function Home() {
                   onChange={(e) => handleChange(nome, parseFloat(e.target.value) || 0, false)}
                   className="w-full p-2 border rounded-lg text-gray-900 font-semibold bg-gray-100 focus:ring-2 focus:ring-purple-600"
                 />
-                {(nome === "Ovos Cozidos" || nome === "Queijo Minas" || nome === "Whey Protein" || nome === "Ovos de Codorna" || nome === "Iogurte do Tambo" || nome === "Proteína do Colágeno") && (
+                {(
+                  nome === "Ovos Cozidos" ||
+                  nome === "Queijo Minas" ||
+                  nome === "Whey Protein" ||
+                  nome === "Ovos de Codorna" ||
+                  nome === "Iogurte do Tambo" ||
+                  nome === "Proteína do Colágeno" ||
+                  nome === "Beef Protein" ||
+                  nome === "Clara de Ovo (de galinha)"
+                ) && (
                   <>
                     <label className="block text-gray-700 text-sm mb-1 mt-2">
-                      {nome === "Whey Protein" || nome === "Proteína do Colágeno" ? "Scoop:" : nome === "Iogurte do Tambo" ? "Pote (200g):" : "Unidade:"}
+                      {["Whey Protein", "Beef Protein", "Proteína do Colágeno"].includes(nome)
+                        ? "Scoop:"
+                        : nome === "Iogurte do Tambo"
+                        ? "Pote (200g):"
+                        : "Unidade:"}
                     </label>
                     <input
                       type="number"
