@@ -3,19 +3,73 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
+  background: #f6f0e6;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-cream font-sans text-ink antialiased;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3 {
+    @apply text-ink;
+  }
+  :focus-visible {
+    outline: 3px solid #b4642f;
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+  }
+  /* evita zoom automático do iOS em campos com fonte < 16px */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1rem);
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-sand/80 bg-ivory shadow-card;
+  }
+  .label {
+    @apply mb-2 block text-[0.95rem] font-semibold text-cocoa;
+  }
+  .input {
+    @apply block min-h-[56px] w-full rounded-xl border border-sand bg-white px-4 text-[1.125rem] text-ink placeholder:text-taupe
+      focus:border-copper focus:outline-none focus:ring-2 focus:ring-copper/30;
+  }
+  .eyebrow {
+    @apply text-[0.8rem] font-semibold uppercase tracking-[0.16em] text-copper;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .pb-nav {
+    padding-bottom: calc(6.5rem + var(--safe-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

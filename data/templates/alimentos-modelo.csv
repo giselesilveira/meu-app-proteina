@@ -1,0 +1,2 @@
+display_name;brand;category;preparation;protein_per_100g;calories_per_100g;fat_per_100g;carbohydrate_per_100g;fiber_per_100g;sodium_mg_per_100g;default_serving_g;serving_label;source_type;source_reference
+EXEMPLO - apague esta linha;Marca do produto;Suplementos;pó;0;0;0;0;0;0;30;1 scoop;label;Rótulo da embalagem, lote/ano, conferido por <nome> em <data>
