@@ -37,7 +37,7 @@ function sqlNum(v: number | null): string {
   return v === null ? "null" : String(v);
 }
 
-function main() {
+export function main() {
   const buffer = readFileSync(xlsPath);
   const sha256 = createHash("sha256").update(buffer).digest("hex");
   const curation = JSON.parse(readFileSync(curationPath, "utf8")) as Curation;
@@ -98,10 +98,24 @@ function main() {
     "-- Idempotente: pode ser executado novamente sem duplicar registros.",
     "begin;",
   ];
-  for (const f of foods) {
-    lines.push(
-      `insert into public.food_catalog (name, display_name, taco_name, category, preparation, protein_per_100g, calories_per_100g, fat_per_100g, carbohydrate_per_100g, fiber_per_100g, sodium_mg_per_100g, default_serving_g, serving_label, source_type, source_reference, taco_code, source_flags, added_by, is_active) values (` +
-        [
+  const COLS =
+    "name, display_name, taco_name, category, preparation, protein_per_100g, calories_per_100g, fat_per_100g, carbohydrate_per_100g, fiber_per_100g, sodium_mg_per_100g, default_serving_g, serving_label, source_type, source_reference, taco_code, source_flags, added_by, is_active";
+  const UPDATE = [
+    "name", "display_name", "taco_name", "category", "preparation", "protein_per_100g", "calories_per_100g",
+    "fat_per_100g", "carbohydrate_per_100g", "fiber_per_100g", "sodium_mg_per_100g", "source_reference",
+    "source_flags", "is_active",
+  ]
+    .map((c) => `${c} = excluded.${c}`)
+    .concat([
+      "default_serving_g = coalesce(excluded.default_serving_g, public.food_catalog.default_serving_g)",
+      "serving_label = coalesce(excluded.serving_label, public.food_catalog.serving_label)",
+    ])
+    .join(", ");
+  const ref = sqlText(TACO_SOURCE_REFERENCE);
+  for (let i = 0; i < foods.length; i += 100) {
+    const values = foods.slice(i, i + 100).map(
+      (f) =>
+        `(${[
           sqlText(f.taco_name),
           sqlText(f.display_name),
           sqlText(f.taco_name),
@@ -116,19 +130,22 @@ function main() {
           sqlNum(f.default_serving_g),
           sqlText(f.serving_label),
           "'TACO'",
-          sqlText(TACO_SOURCE_REFERENCE),
+          ref,
           String(f.taco_code),
           `${sqlText(JSON.stringify(f.flags))}::jsonb`,
           "'import-taco'",
           f.is_active ? "true" : "false",
-        ].join(", ") +
-        `) on conflict (taco_code) do update set name = excluded.name, display_name = excluded.display_name, taco_name = excluded.taco_name, category = excluded.category, preparation = excluded.preparation, protein_per_100g = excluded.protein_per_100g, calories_per_100g = excluded.calories_per_100g, fat_per_100g = excluded.fat_per_100g, carbohydrate_per_100g = excluded.carbohydrate_per_100g, fiber_per_100g = excluded.fiber_per_100g, sodium_mg_per_100g = excluded.sodium_mg_per_100g, default_serving_g = coalesce(excluded.default_serving_g, public.food_catalog.default_serving_g), serving_label = coalesce(excluded.serving_label, public.food_catalog.serving_label), source_reference = excluded.source_reference, source_flags = excluded.source_flags, is_active = excluded.is_active;`,
+        ].join(", ")})`,
     );
-    for (const alias of f.aliases) {
-      lines.push(
-        `insert into public.food_aliases (food_id, alias) select id, ${sqlText(alias)} from public.food_catalog where taco_code = ${f.taco_code} on conflict (food_id, alias_normalized) do nothing;`,
-      );
-    }
+    lines.push(
+      `insert into public.food_catalog (${COLS}) values\n${values.join(",\n")}\non conflict (taco_code) do update set ${UPDATE};`,
+    );
+  }
+  const aliasRows = foods.flatMap((f) => f.aliases.map((a) => `(${f.taco_code}, ${sqlText(a)})`));
+  if (aliasRows.length) {
+    lines.push(
+      `insert into public.food_aliases (food_id, alias)\nselect c.id, v.alias from (values\n${aliasRows.join(",\n")}\n) as v(taco_code, alias)\njoin public.food_catalog c on c.taco_code = v.taco_code\non conflict (food_id, alias_normalized) do nothing;`,
+    );
   }
   lines.push("commit;", "");
   writeFileSync(sqlOut, lines.join("\n"));
@@ -139,4 +156,4 @@ function main() {
   console.log(`-> ${path.relative(root, jsonOut)}\n-> ${path.relative(root, sqlOut)}`);
 }
 
-main();
+if (require.main === module) main();

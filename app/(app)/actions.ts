@@ -233,8 +233,23 @@ export async function saveCheckin(
   }
   revalidateApp();
   // Peso diferente do usado na meta: perguntar antes de recalcular (nunca recalcula sozinho).
+  // Só pergunta se este é o check-in mais recente (registrar um peso antigo não muda a meta).
   const n = access.nutrition;
-  const askRecalculate = Boolean(n && v.weightKg !== null && Math.abs(v.weightKg - n.weight_kg) >= 0.1);
+  let isLatest = true;
+  try {
+    const db = await createClient();
+    const { data: latest } = await db
+      .from("body_checkins")
+      .select("checkin_date")
+      .not("weight_kg", "is", null)
+      .order("checkin_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    isLatest = !latest || v.date >= (latest.checkin_date as string);
+  } catch {
+    isLatest = false;
+  }
+  const askRecalculate = Boolean(isLatest && n && v.weightKg !== null && Math.round(Math.abs(v.weightKg - n.weight_kg) * 10) >= 1);
   return {
     ok: true,
     message: "Evolução registrada.",

@@ -121,6 +121,19 @@ describe("idempotência", () => {
     expect(t.sendWelcomeEmail).toHaveBeenCalledTimes(1);
   });
 
+  it("evento ignorado por configuração é reprocessado quando reenviado depois de corrigir", async () => {
+    const t = setup({ config: { allowedProductUcodes: [] } });
+    const body = payload("PURCHASE_APPROVED", { id: "evento-config" });
+    expect((await t.send(body)).body.result).toBe("ignored");
+    const fixed = await processHotmartWebhook(
+      { rawBody: JSON.stringify(body), hottokHeader: HOTTOK },
+      { repo: t.repo, config, sendWelcomeEmail: t.sendWelcomeEmail },
+    );
+    expect(fixed.body.result).toBe("processed");
+    expect(t.entitlements).toHaveLength(1);
+    expect(t.events).toHaveLength(1);
+  });
+
   it("evento que falhou é reprocessado no reenvio", async () => {
     const t = setup();
     const original = t.repo.insertEntitlement;

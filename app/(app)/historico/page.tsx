@@ -62,7 +62,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
             <li key={d.date}>
               <Link href={`/historico/${d.date}`} className="card flex items-center gap-4 p-4 hover:border-copper">
                 <div className="w-20 shrink-0">
-                  <p className="font-bold capitalize leading-tight">{formatDayMonth(d.date)}</p>
+                  <p className="font-bold leading-tight">{formatDayMonth(d.date)}</p>
                   {d.date === today ? <p className="text-sm font-semibold text-copper">Hoje</p> : null}
                 </div>
                 <div className="min-w-0 flex-1">

@@ -70,7 +70,8 @@ export function formatShortDate(iso: string): string {
 
 export function formatDayMonth(iso: string): string {
   const d = new Date(`${iso}T12:00:00Z`);
-  return new Intl.DateTimeFormat("pt-BR", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })
+  const text = new Intl.DateTimeFormat("pt-BR", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })
     .format(d)
     .replace(/\./g, "");
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }

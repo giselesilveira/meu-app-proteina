@@ -110,7 +110,7 @@ function FoodSearch({ onSelect }: { onSelect: (f: FoodItem) => void }) {
   }, [query]);
 
   return (
-    <section aria-label="Buscar alimento">
+    <section>
       <label htmlFor={inputId} className="label">
         Buscar alimento
       </label>

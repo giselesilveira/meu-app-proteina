@@ -103,7 +103,10 @@ export async function processHotmartWebhook(
     transaction,
     payload: redactPayload(json),
   });
-  if (recorded.existingStatus === "processed" || recorded.existingStatus === "ignored") {
+  // Já aplicado => nada a fazer. Eventos "ignored"/"failed" são reprocessados num reenvio
+  // (ex.: produto liberado depois em HOTMART_ALLOWED_PRODUCT_UCODES); é seguro porque
+  // o processamento é idempotente por transação.
+  if (recorded.existingStatus === "processed") {
     return ok("duplicate");
   }
 

@@ -152,10 +152,13 @@ begin
   order by e.granted_at desc
   limit 1;
 
+  -- Idempotente e sem escrita desnecessária: só grava se o profile não existe
+  -- ou se ainda falta o buyer ucode.
   insert into public.profiles (user_id, email, hotmart_buyer_ucode)
   values (v_uid, v_email, v_buyer)
   on conflict (user_id) do update
-    set hotmart_buyer_ucode = coalesce(public.profiles.hotmart_buyer_ucode, excluded.hotmart_buyer_ucode);
+    set hotmart_buyer_ucode = excluded.hotmart_buyer_ucode
+    where public.profiles.hotmart_buyer_ucode is null and excluded.hotmart_buyer_ucode is not null;
 
   return public.has_access_for(v_uid);
 end;
@@ -497,7 +500,7 @@ create policy profiles_select_own on public.profiles
   for select to authenticated using (user_id = (select auth.uid()));
 create policy profiles_update_own on public.profiles
   for update to authenticated
-  using (user_id = (select auth.uid()) and public.has_active_access())
+  using (user_id = (select auth.uid()) and (select public.has_active_access()))
   with check (user_id = (select auth.uid()));
 
 -- ENTITLEMENTS: somente leitura do próprio acesso.
@@ -514,42 +517,42 @@ grant select, insert, update, delete on
 
 create policy nutrition_profiles_own on public.nutrition_profiles
   for all to authenticated
-  using (user_id = (select auth.uid()) and public.has_active_access())
-  with check (user_id = (select auth.uid()) and public.has_active_access());
+  using (user_id = (select auth.uid()) and (select public.has_active_access()))
+  with check (user_id = (select auth.uid()) and (select public.has_active_access()));
 
 create policy nutrition_target_history_own on public.nutrition_target_history
   for all to authenticated
-  using (user_id = (select auth.uid()) and public.has_active_access())
-  with check (user_id = (select auth.uid()) and public.has_active_access());
+  using (user_id = (select auth.uid()) and (select public.has_active_access()))
+  with check (user_id = (select auth.uid()) and (select public.has_active_access()));
 
 create policy food_entries_own on public.food_entries
   for all to authenticated
-  using (user_id = (select auth.uid()) and public.has_active_access())
-  with check (user_id = (select auth.uid()) and public.has_active_access());
+  using (user_id = (select auth.uid()) and (select public.has_active_access()))
+  with check (user_id = (select auth.uid()) and (select public.has_active_access()));
 
 create policy favorite_foods_own on public.favorite_foods
   for all to authenticated
-  using (user_id = (select auth.uid()) and public.has_active_access())
-  with check (user_id = (select auth.uid()) and public.has_active_access());
+  using (user_id = (select auth.uid()) and (select public.has_active_access()))
+  with check (user_id = (select auth.uid()) and (select public.has_active_access()));
 
 create policy body_checkins_own on public.body_checkins
   for all to authenticated
-  using (user_id = (select auth.uid()) and public.has_active_access())
-  with check (user_id = (select auth.uid()) and public.has_active_access());
+  using (user_id = (select auth.uid()) and (select public.has_active_access()))
+  with check (user_id = (select auth.uid()) and (select public.has_active_access()));
 
 -- Catálogo: leitura dos itens ativos, apenas para quem tem acesso.
 revoke insert, update, delete on public.food_catalog, public.food_aliases from authenticated;
 grant select on public.food_catalog, public.food_aliases to authenticated;
 create policy food_catalog_read on public.food_catalog
-  for select to authenticated using (is_active and public.has_active_access());
+  for select to authenticated using (is_active and (select public.has_active_access()));
 create policy food_aliases_read on public.food_aliases
-  for select to authenticated using (public.has_active_access());
+  for select to authenticated using ((select public.has_active_access()));
 
 -- Analytics: a aluna só insere eventos próprios; não lê.
 revoke all on public.analytics_events from authenticated;
 grant insert (event_name, properties) on public.analytics_events to authenticated;
 create policy analytics_insert_own on public.analytics_events
-  for insert to authenticated with check (user_id = (select auth.uid()) and public.has_active_access());
+  for insert to authenticated with check (user_id = (select auth.uid()) and (select public.has_active_access()));
 
 grant execute on function public.has_active_access() to authenticated;
 grant execute on function public.claim_my_entitlements() to authenticated;

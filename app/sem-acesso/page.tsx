@@ -27,7 +27,7 @@ export default async function NoAccessPage() {
       <div className="w-full max-w-md">
         <Wordmark className="mb-8" />
         <Card className="p-6">
-          <h1 className="font-serif text-[1.9rem] font-semibold leading-tight">{title}</h1>
+          <h1 className="font-serif text-[1.9rem] font-semibold leading-tight [hyphens:manual]">{title.replace(" e-mail", "\u00a0e\u2011mail")}</h1>
           {email ? (
             <p className="mt-3 text-mute">
               Você entrou com <strong className="text-ink">{email}</strong>.

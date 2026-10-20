@@ -33,7 +33,7 @@ export function CheckinForm({ today, existing }: { today: string; existing: Body
   });
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [ask, setAsk] = useState<{ weightKg: number; newTarget: number } | null>(null);
+  const [ask, setAsk] = useState<{ weightKg: number; newTarget: number; key: number } | null>(null);
   const [pending, startTransition] = useTransition();
 
   function parse(key: Key): number | null | "invalid" {
@@ -47,6 +47,7 @@ export function CheckinForm({ today, existing }: { today: string; existing: Body
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setAsk(null);
     const parsed = Object.fromEntries(FIELDS.map((f) => [f.key, parse(f.key)])) as Record<Key, number | null | "invalid">;
     if (Object.values(parsed).includes("invalid")) return setError("Use apenas números, por exemplo 72,5.");
     startTransition(async () => {
@@ -60,7 +61,7 @@ export function CheckinForm({ today, existing }: { today: string; existing: Body
       if (!res.ok) return setError(res.error);
       setSuccess(res.message ?? "Evolução registrada.");
       if (res.data?.askRecalculate && res.data.weightKg && res.data.newTarget) {
-        setAsk({ weightKg: res.data.weightKg, newTarget: res.data.newTarget });
+        setAsk({ weightKg: res.data.weightKg, newTarget: res.data.newTarget, key: Date.now() });
       }
       router.refresh();
     });
@@ -105,7 +106,7 @@ export function CheckinForm({ today, existing }: { today: string; existing: Body
           Salvar evolução
         </Button>
       </form>
-      {ask ? <RecalculateDialog {...ask} onClose={() => setAsk(null)} /> : null}
+      {ask ? <RecalculateDialog key={ask.key} weightKg={ask.weightKg} newTarget={ask.newTarget} onClose={() => setAsk(null)} /> : null}
     </Card>
   );
 }
@@ -181,7 +182,7 @@ export function CheckinList({ checkins }: { checkins: BodyCheckin[] }) {
         {checkins.map((c) => (
           <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-3">
             <div>
-              <p className="font-semibold capitalize">{formatDayMonth(c.checkin_date)}</p>
+              <p className="font-semibold">{formatDayMonth(c.checkin_date)}</p>
               <p className="tabular text-sm text-mute">
                 {[
                   c.weight_kg !== null ? `${format.number1(c.weight_kg)} kg` : null,
