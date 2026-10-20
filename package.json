@@ -1,26 +1,50 @@
 {
-  "name": "meu-app-proteina",
-  "version": "0.1.0",
+  "name": "app-maratona-21",
+  "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:db": "vitest run --config vitest.db.config.ts",
+    "taco:build": "tsx scripts/build-taco.ts",
+    "taco:validate": "tsx scripts/validate-taco.ts",
+    "taco:import": "tsx scripts/import-taco.ts",
+    "foods:import-csv": "tsx scripts/import-foods-csv.ts",
+    "icons": "tsx scripts/generate-icons.ts"
   },
   "dependencies": {
-    "next": "13.5.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.118.0",
+    "next": "15.5.28",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
+    "server-only": "0.0.1",
+    "zod": "3.25.76"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0",
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
-    "postcss": "^8.4.0",
-    "tailwindcss": "^3.4.1",
-    "eslint": "^8.0.0",
-    "eslint-config-next": "13.5.0"
+    "@eslint/eslintrc": "3.3.7",
+    "@types/node": "20.19.25",
+    "@types/pg": "8.15.6",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.3",
+    "eslint": "9.39.5",
+    "eslint-config-next": "15.5.28",
+    "pg": "8.16.3",
+    "postcss": "8.5.23",
+    "tailwindcss": "3.4.19",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7",
+    "xlsx": "0.18.5"
+  },
+  "overrides": {
+    "postcss": "$postcss"
   }
 }

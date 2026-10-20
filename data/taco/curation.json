@@ -1,0 +1,386 @@
+{
+  "_comment": "Nomes amigáveis e termos de busca. NÃO contém valores nutricionais: eles vêm sempre da planilha oficial. O nome amigável sempre mantém a preparação do nome oficial.",
+  "foods": {
+    "277": {
+      "display_name": "Atum em lata, conserva em óleo",
+      "aliases": [
+        "atum enlatado",
+        "atum lata"
+      ]
+    },
+    "278": {
+      "display_name": "Atum fresco, cru",
+      "aliases": [
+        "sashimi de atum"
+      ]
+    },
+    "284": {
+      "display_name": "Camarão grande, cozido"
+    },
+    "285": {
+      "display_name": "Camarão grande, cru"
+    },
+    "286": {
+      "display_name": "Camarão sete-barbas com casca, frito"
+    },
+    "326": {
+      "display_name": "Carne moída (acém), cozida",
+      "aliases": [
+        "carne moida",
+        "carne moída",
+        "moída",
+        "moido"
+      ]
+    },
+    "327": {
+      "display_name": "Carne moída (acém), crua",
+      "aliases": [
+        "carne moida",
+        "carne moída",
+        "moída",
+        "moido"
+      ]
+    },
+    "376": {
+      "display_name": "Patinho sem gordura, cru",
+      "aliases": [
+        "bife de patinho",
+        "carne bovina"
+      ]
+    },
+    "377": {
+      "display_name": "Patinho sem gordura, grelhado",
+      "aliases": [
+        "bife de patinho",
+        "carne bovina"
+      ]
+    },
+    "369": {
+      "display_name": "Alcatra (miolo) sem gordura, crua",
+      "aliases": [
+        "bife de alcatra",
+        "carne bovina"
+      ]
+    },
+    "370": {
+      "display_name": "Alcatra (miolo) sem gordura, grelhada",
+      "aliases": [
+        "bife de alcatra",
+        "carne bovina"
+      ]
+    },
+    "357": {
+      "display_name": "Filé mignon sem gordura, cru",
+      "aliases": [
+        "file mignon",
+        "mignon"
+      ]
+    },
+    "358": {
+      "display_name": "Filé mignon sem gordura, grelhado",
+      "aliases": [
+        "file mignon",
+        "mignon"
+      ]
+    },
+    "345": {
+      "display_name": "Contrafilé sem gordura, cru",
+      "aliases": [
+        "contra file",
+        "bife"
+      ]
+    },
+    "346": {
+      "display_name": "Contrafilé sem gordura, grelhado",
+      "aliases": [
+        "contra file",
+        "bife"
+      ]
+    },
+    "372": {
+      "display_name": "Músculo bovino sem gordura, cru"
+    },
+    "371": {
+      "display_name": "Músculo bovino sem gordura, cozido"
+    },
+    "355": {
+      "display_name": "Fígado bovino, cru",
+      "aliases": [
+        "figado de boi"
+      ]
+    },
+    "356": {
+      "display_name": "Fígado bovino, grelhado",
+      "aliases": [
+        "figado de boi",
+        "bife de figado"
+      ]
+    },
+    "432": {
+      "display_name": "Lombo de porco, assado",
+      "aliases": [
+        "carne de porco",
+        "suino",
+        "suíno"
+      ]
+    },
+    "433": {
+      "display_name": "Lombo de porco, cru",
+      "aliases": [
+        "carne de porco",
+        "suino",
+        "suíno"
+      ]
+    },
+    "427": {
+      "display_name": "Bisteca de porco, crua",
+      "aliases": [
+        "carne de porco",
+        "suino"
+      ]
+    },
+    "428": {
+      "display_name": "Bisteca de porco, frita",
+      "aliases": [
+        "carne de porco",
+        "suino"
+      ]
+    },
+    "429": {
+      "display_name": "Bisteca de porco, grelhada",
+      "aliases": [
+        "carne de porco",
+        "suino"
+      ]
+    },
+    "435": {
+      "display_name": "Pernil de porco, assado",
+      "aliases": [
+        "carne de porco",
+        "suino"
+      ]
+    },
+    "436": {
+      "display_name": "Pernil de porco, cru",
+      "aliases": [
+        "carne de porco",
+        "suino"
+      ]
+    },
+    "406": {
+      "display_name": "Peito de frango com pele, assado"
+    },
+    "407": {
+      "display_name": "Peito de frango com pele, cru"
+    },
+    "408": {
+      "display_name": "Peito de frango sem pele, cozido",
+      "aliases": [
+        "frango desfiado"
+      ]
+    },
+    "409": {
+      "display_name": "Peito de frango sem pele, cru"
+    },
+    "410": {
+      "display_name": "Peito de frango sem pele, grelhado",
+      "aliases": [
+        "file de frango",
+        "filé de frango"
+      ]
+    },
+    "396": {
+      "display_name": "Coxa de frango com pele, assada"
+    },
+    "397": {
+      "display_name": "Coxa de frango com pele, crua"
+    },
+    "398": {
+      "display_name": "Coxa de frango sem pele, cozida"
+    },
+    "399": {
+      "display_name": "Coxa de frango sem pele, crua"
+    },
+    "411": {
+      "display_name": "Sobrecoxa de frango com pele, assada"
+    },
+    "412": {
+      "display_name": "Sobrecoxa de frango com pele, crua"
+    },
+    "413": {
+      "display_name": "Sobrecoxa de frango sem pele, assada"
+    },
+    "414": {
+      "display_name": "Sobrecoxa de frango sem pele, crua"
+    },
+    "394": {
+      "display_name": "Coração de frango, cru"
+    },
+    "395": {
+      "display_name": "Coração de frango, grelhado"
+    },
+    "400": {
+      "display_name": "Fígado de frango, cru"
+    },
+    "486": {
+      "display_name": "Clara de ovo de galinha, cozida (10 minutos)",
+      "aliases": [
+        "clara",
+        "claras"
+      ]
+    },
+    "487": {
+      "display_name": "Gema de ovo de galinha, cozida (10 minutos)"
+    },
+    "488": {
+      "display_name": "Ovo de galinha inteiro, cozido (10 minutos)",
+      "aliases": [
+        "ovo cozido",
+        "ovos"
+      ]
+    },
+    "489": {
+      "display_name": "Ovo de galinha inteiro, cru",
+      "aliases": [
+        "ovos"
+      ]
+    },
+    "490": {
+      "display_name": "Ovo de galinha inteiro, frito",
+      "aliases": [
+        "ovo frito",
+        "ovos"
+      ]
+    },
+    "485": {
+      "display_name": "Ovo de codorna inteiro, cru",
+      "aliases": [
+        "ovinho de codorna",
+        "ovos de codorna"
+      ]
+    },
+    "461": {
+      "display_name": "Queijo minas frescal",
+      "aliases": [
+        "queijo branco",
+        "minas"
+      ]
+    },
+    "462": {
+      "display_name": "Queijo minas meia cura",
+      "aliases": [
+        "minas"
+      ]
+    },
+    "463": {
+      "display_name": "Queijo muçarela",
+      "aliases": [
+        "mussarela",
+        "muçarela",
+        "mozarela",
+        "mozzarella"
+      ]
+    },
+    "464": {
+      "display_name": "Queijo parmesão"
+    },
+    "467": {
+      "display_name": "Queijo prato"
+    },
+    "468": {
+      "display_name": "Requeijão cremoso"
+    },
+    "469": {
+      "display_name": "Ricota"
+    },
+    "315": {
+      "display_name": "Salmão (filé com pele) fresco, grelhado"
+    },
+    "316": {
+      "display_name": "Salmão sem pele fresco, cru",
+      "aliases": [
+        "sashimi de salmao",
+        "sashimi de salmão"
+      ]
+    },
+    "317": {
+      "display_name": "Salmão sem pele fresco, grelhado"
+    },
+    "318": {
+      "display_name": "Sardinha, assada"
+    },
+    "319": {
+      "display_name": "Sardinha em lata, conserva em óleo",
+      "aliases": [
+        "sardinha lata",
+        "sardinha enlatada"
+      ]
+    },
+    "320": {
+      "display_name": "Sardinha, frita"
+    },
+    "321": {
+      "display_name": "Sardinha inteira, crua"
+    },
+    "584": {
+      "display_name": "Tofu (queijo de soja)",
+      "aliases": [
+        "tofu"
+      ]
+    },
+    "448": {
+      "display_name": "Iogurte natural",
+      "aliases": [
+        "iogurte integral"
+      ]
+    },
+    "449": {
+      "display_name": "Iogurte natural desnatado"
+    },
+    "456": {
+      "display_name": "Leite de vaca desnatado em pó"
+    },
+    "301": {
+      "display_name": "Merluza (filé), assada",
+      "aliases": [
+        "peixe branco"
+      ]
+    },
+    "302": {
+      "display_name": "Merluza (filé), crua",
+      "aliases": [
+        "peixe branco"
+      ]
+    },
+    "303": {
+      "display_name": "Merluza (filé), frita",
+      "aliases": [
+        "peixe branco"
+      ]
+    },
+    "273": {
+      "display_name": "Abadejo (filé congelado), assado",
+      "aliases": [
+        "peixe branco"
+      ]
+    },
+    "276": {
+      "display_name": "Abadejo (filé congelado), grelhado",
+      "aliases": [
+        "peixe branco"
+      ]
+    },
+    "311": {
+      "display_name": "Pintado, assado"
+    },
+    "313": {
+      "display_name": "Pintado, grelhado"
+    },
+    "282": {
+      "display_name": "Cação (posta), cozida"
+    },
+    "308": {
+      "display_name": "Pescada (filé), frita"
+    }
+  }
+}
