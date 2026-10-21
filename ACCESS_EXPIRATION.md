@@ -44,9 +44,9 @@ Arquivo: `supabase/migrations/20261022000001_access_expiration.sql`.
    - preenche `access_expires_at` **somente onde está vazio**: nunca altera nem prorroga um
      vencimento existente; acessos manuais não são tocados.
 4. É idempotente: rodar de novo não muda nada.
-5. **Ordem com o deploy:** aplicar a migração **antes** de publicar o código novo. O código novo
-   lê e grava `purchase_approved_at`; sem a coluna, o webhook falharia (e a Hotmart reenviaria
-   depois).
+5. **Ordem com o deploy:** não importa. O código funciona com ou sem a migração: sem ela, o
+   webhook continua liberando acesso e gravando o vencimento de 6 meses; só não guarda a data de
+   aprovação. Aplicar a migração completa o preenchimento da compra de teste já existente.
 
 Impacto esperado hoje: 1 acesso Hotmart (a compra de teste real) passa a ter vencimento em
 aprovação + 6 meses. Nenhum acesso é criado, removido ou revogado.
