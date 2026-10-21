@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { EntryList } from "@/components/entry-list";
-import { IconCalendar, IconChart, IconCheck, IconPlus, IconStar } from "@/components/icons";
+import { IconCalendar, IconChart, IconPlus, IconStar } from "@/components/icons";
 import { Bar, ProgressRing } from "@/components/progress-ring";
 import { ButtonLink, Card, Notice } from "@/components/ui";
 import { requireAccess } from "@/lib/access";
@@ -51,30 +51,30 @@ export default async function TodayPage() {
       ) : null}
 
       {/* 1. Progresso da proteína */}
-      <section aria-labelledby="meta-proteina" className="overflow-hidden rounded-[1.6rem] bg-espresso p-6 text-cream shadow-card sm:p-8">
+      <section aria-labelledby="meta-proteina" className="overflow-hidden rounded-[1.6rem] bg-espresso p-5 text-cream shadow-card min-[400px]:p-6 sm:p-8">
         <h2 id="meta-proteina" className="eyebrow text-gold">
           Meta de proteína
         </h2>
         <div className="mt-5 flex flex-col items-center gap-7 sm:flex-row sm:items-center sm:gap-9">
           <ProgressRing percent={p.percent} consumed={p.consumed} />
-          <dl className="grid w-full grid-cols-3 gap-3 text-center sm:grid-cols-1 sm:gap-5 sm:text-left">
+          <dl className="grid w-full grid-cols-3 gap-2 text-center min-[400px]:gap-3 sm:grid-cols-1 sm:gap-5 sm:text-left">
             <div>
-              <dt className="text-[0.78rem] font-semibold uppercase tracking-[0.14em] text-sand/70">Meta</dt>
-              <dd className="tabular mt-1 text-[1.65rem] font-bold leading-none">{format.protein(p.target)}</dd>
+              <dt className="whitespace-nowrap text-[0.72rem] font-semibold uppercase tracking-[0.06em] text-sand/70 min-[400px]:text-[0.78rem] min-[400px]:tracking-[0.14em]">Meta</dt>
+              <dd className="tabular mt-1 whitespace-nowrap text-[clamp(1.05rem,5.4vw,1.65rem)] font-bold leading-none">{format.protein(p.target)}</dd>
             </div>
             <div>
-              <dt className="text-[0.78rem] font-semibold uppercase tracking-[0.14em] text-sand/70">Consumido</dt>
-              <dd className="tabular mt-1 text-[1.65rem] font-bold leading-none text-gold">{format.protein(p.consumed)}</dd>
+              <dt className="whitespace-nowrap text-[0.72rem] font-semibold uppercase tracking-[0.06em] text-sand/70 min-[400px]:text-[0.78rem] min-[400px]:tracking-[0.14em]">Consumido</dt>
+              <dd className="tabular mt-1 whitespace-nowrap text-[clamp(1.05rem,5.4vw,1.65rem)] font-bold leading-none text-gold">{format.protein(p.consumed)}</dd>
             </div>
             <div>
-              <dt className="text-[0.78rem] font-semibold uppercase tracking-[0.14em] text-sand/70">Faltam</dt>
-              <dd className="tabular mt-1 text-[1.65rem] font-bold leading-none">{format.protein(p.remaining)}</dd>
+              <dt className="whitespace-nowrap text-[0.72rem] font-semibold uppercase tracking-[0.06em] text-sand/70 min-[400px]:text-[0.78rem] min-[400px]:tracking-[0.14em]">Faltam</dt>
+              <dd className="tabular mt-1 whitespace-nowrap text-[clamp(1.05rem,5.4vw,1.65rem)] font-bold leading-none">{format.protein(p.remaining)}</dd>
             </div>
           </dl>
         </div>
         {p.reached ? (
           <p className="mt-6 flex items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-3 text-center font-semibold text-gold sm:justify-start">
-            <IconCheck size={22} /> Meta de proteína atingida hoje ✓
+            Meta de proteína atingida hoje ✓
           </p>
         ) : null}
       </section>

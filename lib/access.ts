@@ -122,3 +122,13 @@ export const requireAdmin = cache(async (): Promise<{ user: User; email: string 
 });
 
 export const SESSION_EXPIRED = "Sua sessão expirou. Entre novamente para continuar.";
+export const ACCESS_INACTIVE = "Seu acesso ao app não está ativo no momento. Se precisar de ajuda, fale com o suporte.";
+const TEMPORARY_ERROR = "Não conseguimos salvar agora. Tente novamente em instantes.";
+
+/** Mensagem para Server Actions recusadas: diferencia sessão expirada de acesso revogado/expirado. */
+export async function actionDeniedMessage(): Promise<string> {
+  const access = await getAccess();
+  if (access.kind === "no_access") return ACCESS_INACTIVE;
+  if (access.kind === "error") return TEMPORARY_ERROR;
+  return SESSION_EXPIRED;
+}

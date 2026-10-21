@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { accessForAction, SESSION_EXPIRED, type AppAccess } from "@/lib/access";
+import { accessForAction, actionDeniedMessage, type AppAccess } from "@/lib/access";
 import { track } from "@/lib/analytics";
 import { addDays, isISODate, localDateISO } from "@/lib/dates";
 import { proteinTarget } from "@/lib/nutrition";
@@ -51,7 +51,7 @@ const onboardingSchema = z.object({
 
 export async function completeOnboarding(input: z.input<typeof onboardingSchema>): Promise<ActionResult> {
   const access = await accessForAction();
-  if (!access) return { ok: false, error: SESSION_EXPIRED };
+  if (!access) return { ok: false, error: await actionDeniedMessage() };
   const parsed = onboardingSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Confira os dados." };
   const { fullName, weightKg, factor } = parsed.data;
@@ -96,7 +96,7 @@ const addEntrySchema = z.object({
 
 export async function addFoodEntry(input: z.input<typeof addEntrySchema>): Promise<ActionResult> {
   const access = await accessForAction();
-  if (!access) return { ok: false, error: SESSION_EXPIRED };
+  if (!access) return { ok: false, error: await actionDeniedMessage() };
   const parsed = addEntrySchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Confira os dados." };
   if (!validDay(access, parsed.data.date)) return { ok: false, error: "Escolha uma data válida." };
@@ -131,7 +131,7 @@ const updateEntrySchema = z.object({
 
 export async function updateFoodEntry(input: z.input<typeof updateEntrySchema>): Promise<ActionResult> {
   const access = await accessForAction();
-  if (!access) return { ok: false, error: SESSION_EXPIRED };
+  if (!access) return { ok: false, error: await actionDeniedMessage() };
   const parsed = updateEntrySchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Confira os dados." };
   try {
@@ -151,7 +151,7 @@ export async function updateFoodEntry(input: z.input<typeof updateEntrySchema>):
 
 export async function deleteFoodEntry(id: string): Promise<ActionResult> {
   const access = await accessForAction();
-  if (!access) return { ok: false, error: SESSION_EXPIRED };
+  if (!access) return { ok: false, error: await actionDeniedMessage() };
   if (!z.string().uuid().safeParse(id).success) return { ok: false, error: "Registro não encontrado." };
   try {
     const db = await createClient();
@@ -168,7 +168,7 @@ export async function deleteFoodEntry(id: string): Promise<ActionResult> {
 
 export async function toggleFavorite(foodId: string): Promise<ActionResult<{ favorite: boolean }>> {
   const access = await accessForAction();
-  if (!access) return { ok: false, error: SESSION_EXPIRED };
+  if (!access) return { ok: false, error: await actionDeniedMessage() };
   if (!z.string().uuid().safeParse(foodId).success) return { ok: false, error: "Alimento não encontrado." };
   try {
     const db = await createClient();
@@ -208,7 +208,7 @@ export async function saveCheckin(
   input: z.input<typeof checkinSchema>,
 ): Promise<ActionResult<{ askRecalculate: boolean; weightKg: number | null; newTarget: number | null }>> {
   const access = await accessForAction();
-  if (!access) return { ok: false, error: SESSION_EXPIRED };
+  if (!access) return { ok: false, error: await actionDeniedMessage() };
   const parsed = checkinSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Confira as medidas." };
   const v = parsed.data;
@@ -263,7 +263,7 @@ export async function saveCheckin(
 
 export async function deleteCheckin(id: string): Promise<ActionResult> {
   const access = await accessForAction();
-  if (!access) return { ok: false, error: SESSION_EXPIRED };
+  if (!access) return { ok: false, error: await actionDeniedMessage() };
   if (!z.string().uuid().safeParse(id).success) return { ok: false, error: "Registro não encontrado." };
   try {
     const db = await createClient();
@@ -284,7 +284,7 @@ const nutritionSchema = z.object({ weightKg: weightSchema, factor: factorSchema.
 /** Recalcula a meta com peso/fator informados — só por ação explícita da aluna. */
 export async function updateProteinTarget(input: z.input<typeof nutritionSchema>): Promise<ActionResult<{ target: number }>> {
   const access = await accessForAction();
-  if (!access?.nutrition) return { ok: false, error: SESSION_EXPIRED };
+  if (!access?.nutrition) return { ok: false, error: await actionDeniedMessage() };
   const parsed = nutritionSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Confira os dados." };
   const factor = parsed.data.factor ?? access.nutrition.protein_factor;
@@ -317,7 +317,7 @@ const goalsSchema = z.object({
 
 export async function updateOptionalGoals(input: z.input<typeof goalsSchema>): Promise<ActionResult> {
   const access = await accessForAction();
-  if (!access?.nutrition) return { ok: false, error: SESSION_EXPIRED };
+  if (!access?.nutrition) return { ok: false, error: await actionDeniedMessage() };
   const parsed = goalsSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Confira os valores das metas." };
   try {
@@ -343,7 +343,7 @@ export async function updateOptionalGoals(input: z.input<typeof goalsSchema>): P
 
 export async function updateName(fullName: string): Promise<ActionResult> {
   const access = await accessForAction();
-  if (!access) return { ok: false, error: SESSION_EXPIRED };
+  if (!access) return { ok: false, error: await actionDeniedMessage() };
   const parsed = z.string().trim().min(1, "Informe seu nome.").max(120).safeParse(fullName);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Informe seu nome." };
   try {

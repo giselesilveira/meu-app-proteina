@@ -181,7 +181,7 @@ export function CheckinList({ checkins }: { checkins: BodyCheckin[] }) {
       <ul className="card divide-y divide-sand/80">
         {checkins.map((c) => (
           <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-3">
-            <div>
+            <div className="min-w-0">
               <p className="font-semibold">{formatDayMonth(c.checkin_date)}</p>
               <p className="tabular text-sm text-mute">
                 {[
@@ -219,7 +219,7 @@ export function CheckinList({ checkins }: { checkins: BodyCheckin[] }) {
                 type="button"
                 onClick={() => setConfirm(c.id)}
                 aria-label={`Excluir check-in de ${formatDayMonth(c.checkin_date)}`}
-                className="flex h-11 w-11 items-center justify-center rounded-lg text-taupe hover:bg-sand/60 hover:text-danger"
+                className="flex h-11 min-w-[44px] shrink-0 items-center justify-center rounded-lg text-taupe hover:bg-sand/60 hover:text-danger"
               >
                 <IconTrash size={20} />
               </button>
