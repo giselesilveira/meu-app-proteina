@@ -53,16 +53,13 @@ export default async function ProfilePage() {
               <IconInfo className="text-copper" /> Ajuda e suporte
             </a>
           ) : null}
-          {publicConfig.privacyPolicyUrl ? (
-            <a href={publicConfig.privacyPolicyUrl} className="flex min-h-[60px] items-center gap-3 px-5 font-semibold hover:bg-sand/40" target="_blank" rel="noreferrer">
-              <IconShield className="text-copper" /> Política de privacidade
-            </a>
-          ) : null}
-          {publicConfig.termsUrl ? (
-            <a href={publicConfig.termsUrl} className="flex min-h-[60px] items-center gap-3 px-5 font-semibold hover:bg-sand/40" target="_blank" rel="noreferrer">
-              <IconShield className="text-copper" /> Termos de uso
-            </a>
-          ) : null}
+          {/* Documentos internos por padrão; PRIVACY_POLICY_URL / TERMS_URL, se definidas, têm prioridade. */}
+          <Link href={publicConfig.privacyPolicyUrl || "/politica-de-privacidade"} className="flex min-h-[60px] items-center gap-3 px-5 font-semibold hover:bg-sand/40">
+            <IconShield className="text-copper" /> Política de privacidade
+          </Link>
+          <Link href={publicConfig.termsUrl || "/termos-de-uso"} className="flex min-h-[60px] items-center gap-3 px-5 font-semibold hover:bg-sand/40">
+            <IconShield className="text-copper" /> Termos de uso
+          </Link>
           {isAdminEmail(access.user.email) ? (
             <Link href="/admin" className="flex min-h-[60px] items-center gap-3 px-5 font-semibold hover:bg-sand/40">
               <IconShield className="text-copper" /> Administração

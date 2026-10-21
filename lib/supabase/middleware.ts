@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * A verificação de ACESSO (entitlement) é feita no servidor em lib/access.ts
  * e no banco (RLS) — o middleware é só a primeira barreira.
  */
-const PUBLIC_PATHS = ["/entrar", "/auth", "/api/webhooks", "/offline", "/manifest.webmanifest", "/sw.js", "/icons"];
+const PUBLIC_PATHS = ["/entrar", "/auth", "/api/webhooks", "/offline", "/politica-de-privacidade", "/termos-de-uso", "/manifest.webmanifest", "/sw.js", "/icons"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });

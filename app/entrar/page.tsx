@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Wordmark } from "@/components/brand";
+import { LegalLinks } from "@/components/legal-page";
 import { LoginForm } from "@/components/login-form";
 import { getAccess } from "@/lib/access";
 import { isAdminUser } from "@/lib/admin";
@@ -32,6 +33,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <p className="mt-8 text-center text-sm text-mute">
             Este aplicativo é exclusivo para alunas da Nutri Gisele Silveira. O compartilhamento do acesso não é permitido.
           </p>
+          <LegalLinks className="mt-4" tone="light" />
         </div>
       </section>
     </main>
