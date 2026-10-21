@@ -5,7 +5,7 @@ import { format } from "@/lib/nutrition";
 export function LineChart({ points, unit, label }: { points: { date: string; value: number }[]; unit: string; label: string }) {
   const W = 320;
   const H = 140;
-  const pad = { l: 8, r: 8, t: 16, b: 24 };
+  const pad = { l: 8, r: 8, t: 16, b: 10 };
   const values = points.map((p) => p.value);
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -24,15 +24,12 @@ export function LineChart({ points, unit, label }: { points: { date: string; val
         {points.map((p, i) => (
           <circle key={p.date} cx={x(i)} cy={y(p.value)} r={i === points.length - 1 ? 5 : 3.5} fill={i === points.length - 1 ? "#14100D" : "#B4642F"} />
         ))}
-        <text x={pad.l} y={H - 6} fontSize="11" fill="#8A7B6C">
-          {formatShortDate(first.date)}
-        </text>
-        {points.length > 1 ? (
-          <text x={W - pad.r} y={H - 6} fontSize="11" fill="#8A7B6C" textAnchor="end">
-            {formatShortDate(last.date)}
-          </text>
-        ) : null}
       </svg>
+      {/* datas em HTML: tamanho legível fixo, independente da largura do gráfico */}
+      <figcaption className="tabular mt-1 flex justify-between text-[0.8125rem] text-taupe">
+        <span>{formatShortDate(first.date)}</span>
+        {points.length > 1 ? <span>{formatShortDate(last.date)}</span> : null}
+      </figcaption>
     </figure>
   );
 }

@@ -59,15 +59,15 @@ export default async function TodayPage() {
           <ProgressRing percent={p.percent} consumed={p.consumed} />
           <dl className="grid w-full grid-cols-3 gap-2 text-center min-[400px]:gap-3 sm:grid-cols-1 sm:gap-5 sm:text-left">
             <div>
-              <dt className="whitespace-nowrap text-[0.72rem] font-semibold uppercase tracking-[0.06em] text-sand/70 min-[400px]:text-[0.78rem] min-[400px]:tracking-[0.14em]">Meta</dt>
+              <dt className="whitespace-nowrap text-[0.8125rem] font-semibold text-sand/75 min-[400px]:uppercase min-[400px]:tracking-[0.12em]">Meta</dt>
               <dd className="tabular mt-1 whitespace-nowrap text-[clamp(1.05rem,5.4vw,1.65rem)] font-bold leading-none">{format.protein(p.target)}</dd>
             </div>
             <div>
-              <dt className="whitespace-nowrap text-[0.72rem] font-semibold uppercase tracking-[0.06em] text-sand/70 min-[400px]:text-[0.78rem] min-[400px]:tracking-[0.14em]">Consumido</dt>
+              <dt className="whitespace-nowrap text-[0.8125rem] font-semibold text-sand/75 min-[400px]:uppercase min-[400px]:tracking-[0.12em]">Consumido</dt>
               <dd className="tabular mt-1 whitespace-nowrap text-[clamp(1.05rem,5.4vw,1.65rem)] font-bold leading-none text-gold">{format.protein(p.consumed)}</dd>
             </div>
             <div>
-              <dt className="whitespace-nowrap text-[0.72rem] font-semibold uppercase tracking-[0.06em] text-sand/70 min-[400px]:text-[0.78rem] min-[400px]:tracking-[0.14em]">Faltam</dt>
+              <dt className="whitespace-nowrap text-[0.8125rem] font-semibold text-sand/75 min-[400px]:uppercase min-[400px]:tracking-[0.12em]">Faltam</dt>
               <dd className="tabular mt-1 whitespace-nowrap text-[clamp(1.05rem,5.4vw,1.65rem)] font-bold leading-none">{format.protein(p.remaining)}</dd>
             </div>
           </dl>
@@ -163,8 +163,8 @@ function SecondaryMetric({
 }) {
   return (
     <div>
-      <p className="text-[0.8rem] font-semibold uppercase tracking-[0.12em] text-taupe">{label}</p>
-      <p className="tabular mt-1 text-[1.4rem] font-bold">{value}</p>
+      <p className="text-[0.8125rem] font-semibold uppercase tracking-[0.08em] text-taupe">{label}</p>
+      <p className="tabular mt-1 whitespace-nowrap text-[clamp(1.1rem,5.4vw,1.4rem)] font-bold">{value}</p>
       {target ? (
         <div className="mt-2 space-y-1">
           <Bar percent={Math.round((consumed / target) * 100)} label={`${label}: progresso da meta`} />

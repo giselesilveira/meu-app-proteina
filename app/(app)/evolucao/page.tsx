@@ -72,22 +72,22 @@ export default async function EvolutionPage() {
                   {points.length} {points.length === 1 ? "registro" : "registros"}
                 </p>
               </div>
-              <dl className="tabular mb-3 grid grid-cols-3 gap-2">
+              <dl className="tabular mb-3 grid grid-cols-3 gap-2 min-[400px]:gap-3">
                 <div>
-                  <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-taupe">Primeiro</dt>
-                  <dd className="text-lg font-bold">
+                  <dt className="text-[0.8125rem] font-semibold text-taupe min-[400px]:uppercase min-[400px]:tracking-[0.08em]">Primeiro</dt>
+                  <dd className="whitespace-nowrap text-[clamp(0.95rem,4.4vw,1.125rem)] font-bold">
                     {format.number1(first.value)} {m.unit}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-taupe">Atual</dt>
-                  <dd className="text-lg font-bold">
+                  <dt className="text-[0.8125rem] font-semibold text-taupe min-[400px]:uppercase min-[400px]:tracking-[0.08em]">Atual</dt>
+                  <dd className="whitespace-nowrap text-[clamp(0.95rem,4.4vw,1.125rem)] font-bold">
                     {format.number1(last.value)} {m.unit}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-taupe">Diferença</dt>
-                  <dd className="text-lg font-bold">
+                  <dt className="text-[0.8125rem] font-semibold text-taupe min-[400px]:uppercase min-[400px]:tracking-[0.08em]">Diferença</dt>
+                  <dd className="whitespace-nowrap text-[clamp(0.95rem,4.4vw,1.125rem)] font-bold">
                     {diff > 0 ? "+" : diff < 0 ? "−" : ""}
                     {format.number1(Math.abs(diff))} {m.unit}
                   </dd>

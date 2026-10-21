@@ -33,7 +33,7 @@ export function BottomNav() {
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-[68px] flex-col items-center justify-center gap-1 text-[0.78rem] font-semibold ${
+                className={`flex min-h-[68px] flex-col items-center justify-center gap-1 whitespace-nowrap text-[clamp(0.8125rem,3.6vw,0.875rem)] font-semibold ${
                   active ? "text-gold" : "text-sand/75 hover:text-cream"
                 }`}
               >
@@ -85,7 +85,7 @@ export function SideNav({ isAdmin }: { isAdmin: boolean }) {
           <IconShield size={20} /> Administração
         </Link>
       ) : null}
-      <p className="px-3 text-xs text-sand/50">Seu painel diário de progresso.</p>
+      <p className="px-3 text-sm text-sand/60">Seu painel diário de progresso.</p>
     </aside>
   );
 }

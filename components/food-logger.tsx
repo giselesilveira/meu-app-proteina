@@ -175,7 +175,7 @@ function FoodList({ foods, onSelect }: { foods: FoodItem[]; onSelect: (f: FoodIt
             </span>
             <span className="tabular shrink-0 text-right text-[0.95rem] text-cocoa">
               <strong className="block text-[1.05rem] text-copper-dark">{format.protein(f.protein_per_100g)}</strong>
-              <span className="text-[0.8rem] text-taupe">prot./100 g</span>
+              <span className="text-[0.8125rem] text-taupe">prot./100 g</span>
             </span>
           </button>
         </li>
@@ -302,16 +302,16 @@ function AmountPanel({
           {preview ? (
             <dl className="grid grid-cols-3 gap-2 text-center">
               <div>
-                <dt className="text-[0.75rem] uppercase tracking-[0.12em] text-sand/70">Proteína</dt>
-                <dd className="tabular text-[1.35rem] font-bold text-gold">{format.protein(preview.protein)}</dd>
+                <dt className="text-[0.8125rem] text-sand/75 min-[400px]:uppercase min-[400px]:tracking-[0.1em]">Proteína</dt>
+                <dd className="tabular whitespace-nowrap text-[clamp(1rem,4.8vw,1.35rem)] font-bold text-gold">{format.protein(preview.protein)}</dd>
               </div>
               <div>
-                <dt className="text-[0.75rem] uppercase tracking-[0.12em] text-sand/70">Calorias</dt>
-                <dd className="tabular text-[1.35rem] font-bold">{format.calories(preview.calories)}</dd>
+                <dt className="text-[0.8125rem] text-sand/75 min-[400px]:uppercase min-[400px]:tracking-[0.1em]">Calorias</dt>
+                <dd className="tabular whitespace-nowrap text-[clamp(1rem,4.8vw,1.35rem)] font-bold">{format.calories(preview.calories)}</dd>
               </div>
               <div>
-                <dt className="text-[0.75rem] uppercase tracking-[0.12em] text-sand/70">Gordura</dt>
-                <dd className="tabular text-[1.35rem] font-bold">{preview.fat !== null ? format.fat(preview.fat) : "—"}</dd>
+                <dt className="text-[0.8125rem] text-sand/75 min-[400px]:uppercase min-[400px]:tracking-[0.1em]">Gordura</dt>
+                <dd className="tabular whitespace-nowrap text-[clamp(1rem,4.8vw,1.35rem)] font-bold">{preview.fat !== null ? format.fat(preview.fat) : "—"}</dd>
               </div>
             </dl>
           ) : (

@@ -96,8 +96,8 @@ export function EmptyState({ title, children, action }: { title: string; childre
 export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
   return (
     <div>
-      <p className="text-[0.8rem] font-semibold uppercase tracking-[0.12em] text-taupe">{label}</p>
-      <p className="tabular mt-1 text-[1.5rem] font-bold leading-tight text-ink">{value}</p>
+      <p className="text-[0.8125rem] font-semibold uppercase tracking-[0.08em] text-taupe">{label}</p>
+      <p className="tabular mt-1 whitespace-nowrap text-[clamp(1.1rem,5.4vw,1.5rem)] font-bold leading-tight text-ink">{value}</p>
       {hint ? <p className="text-sm text-mute">{hint}</p> : null}
     </div>
   );
