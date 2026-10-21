@@ -60,7 +60,14 @@ describeDb("banco: migrations + RLS", () => {
     url.pathname = `/${DB_NAME}`;
     db = new Client({ connectionString: url.toString() });
     await db.connect();
-    await db.query(read("supabase/tests/supabase_stub.sql"));
+    // DB_TEST_NO_AUTO_EXPOSE=1 simula o Supabase com "exposição automática de novas tabelas"
+    // desligada (sem privilégios padrão para anon/authenticated/service_role).
+    const stub = read("supabase/tests/supabase_stub.sql");
+    await db.query(
+      process.env.DB_TEST_NO_AUTO_EXPOSE
+        ? stub.split("\n").filter((l) => !l.startsWith("alter default privileges")).join("\n")
+        : stub,
+    );
     await db.query(read("supabase/migrations/20261020000001_init.sql"));
     await db.query(read("supabase/seed/taco_food_catalog.sql"));
 
@@ -236,6 +243,21 @@ describeDb("banco: migrations + RLS", () => {
     await expect(asUser(ANA, (c) => c.query("select public.has_access_for($1)", [BIA]))).rejects.toThrow(
       /permission denied/,
     );
+  });
+
+  it("service_role (servidor) lê e grava todas as tabelas", async () => {
+    await db.query("begin");
+    try {
+      await db.query("set local role service_role");
+      for (const t of ["profiles", "entitlements", "food_catalog", "food_aliases", "food_entries", "webhook_events", "admin_audit_log", "analytics_events", "body_checkins", "nutrition_profiles", "nutrition_target_history", "favorite_foods"]) {
+        await db.query(`select count(*) from public.${t}`);
+      }
+      await db.query("insert into public.webhook_events (external_event_id, event_type, payload) values ('svc-test', 'X', '{}')");
+      await db.query("insert into public.admin_audit_log (admin_email, action, target_type) values ('a@b.c', 'test', 'x')");
+      await db.query("update public.entitlements set updated_at = now() where transaction = 'HP-BIA'");
+    } finally {
+      await db.query("rollback");
+    }
   });
 
   it("busca respeita RLS e encontra por termos fora de ordem", async () => {

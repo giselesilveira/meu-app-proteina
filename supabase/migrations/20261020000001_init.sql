@@ -558,3 +558,14 @@ grant execute on function public.has_active_access() to authenticated;
 grant execute on function public.claim_my_entitlements() to authenticated;
 grant execute on function public.search_foods(text[], text, integer) to authenticated;
 grant execute on function public.normalize_search(text) to authenticated;
+
+-- ---------------------------------------------------------------------
+-- Privilégios explícitos: funciona com a opção do Supabase "exposição
+-- automática de novas tabelas" DESLIGADA (sem privilégios padrão).
+-- O service_role é usado SOMENTE no servidor (webhook Hotmart e admin).
+-- ---------------------------------------------------------------------
+grant usage on schema public to authenticated, service_role;
+grant usage on schema extensions to authenticated, service_role;
+grant all on all tables in schema public to service_role;
+grant usage, select on all sequences in schema public to service_role;
+grant execute on all functions in schema public to service_role;
