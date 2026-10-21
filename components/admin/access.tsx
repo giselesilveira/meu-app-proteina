@@ -2,48 +2,88 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { grantManualAccess, reactivateEntitlement, revokeEntitlement } from "@/app/admin/actions";
+import { extendEntitlement, grantManualAccess, reactivateEntitlement, revokeEntitlement } from "@/app/admin/actions";
+import type { AccessState } from "@/lib/access-period";
 import { Button, Notice } from "../ui";
 
-export function EntitlementActions({ id, status }: { id: string; status: string }) {
+export function EntitlementActions({ id, state }: { id: string; state: AccessState }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
+  const [extending, setExtending] = useState(false);
+  const [until, setUntil] = useState("");
+  const [reason, setReason] = useState("");
+
   return (
-    <div className="space-y-1">
-      {status === "active" ? (
-        <Button
-          variant="danger"
-          className="min-h-[40px] px-3 text-sm"
-          loading={pending}
-          onClick={() => {
-            const reason = window.prompt("Motivo da revogação:");
-            if (reason === null) return;
+    <div className="w-56 space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {state === "revoked" ? (
+          <Button
+            variant="secondary"
+            className="min-h-[40px] px-3 text-sm"
+            loading={pending}
+            onClick={() =>
+              start(async () => {
+                const r = await reactivateEntitlement(id);
+                setMsg(r.ok ? (r.message ?? "") : r.error);
+                router.refresh();
+              })
+            }
+          >
+            Reativar
+          </Button>
+        ) : (
+          <>
+            <Button variant="secondary" className="min-h-[40px] px-3 text-sm" onClick={() => setExtending((v) => !v)}>
+              {extending ? "Fechar" : "Prorrogar"}
+            </Button>
+            <Button
+              variant="danger"
+              className="min-h-[40px] px-3 text-sm"
+              loading={pending}
+              onClick={() => {
+                const r = window.prompt("Motivo da revogação:");
+                if (r === null) return;
+                start(async () => {
+                  const res = await revokeEntitlement(id, r);
+                  setMsg(res.ok ? (res.message ?? "") : res.error);
+                  router.refresh();
+                });
+              }}
+            >
+              Revogar
+            </Button>
+          </>
+        )}
+      </div>
+      {extending && state !== "revoked" ? (
+        <form
+          className="space-y-2"
+          onSubmit={(e) => {
+            e.preventDefault();
             start(async () => {
-              const r = await revokeEntitlement(id, reason);
+              const r = await extendEntitlement({ id, until, reason });
               setMsg(r.ok ? (r.message ?? "") : r.error);
-              router.refresh();
+              if (r.ok) {
+                setExtending(false);
+                router.refresh();
+              }
             });
           }}
         >
-          Revogar
-        </Button>
-      ) : (
-        <Button
-          variant="secondary"
-          className="min-h-[40px] px-3 text-sm"
-          loading={pending}
-          onClick={() =>
-            start(async () => {
-              const r = await reactivateEntitlement(id);
-              setMsg(r.ok ? (r.message ?? "") : r.error);
-              router.refresh();
-            })
-          }
-        >
-          Reativar
-        </Button>
-      )}
+          <label className="block text-xs font-semibold text-cocoa" htmlFor={`until-${id}`}>
+            Acesso até (inclusive)
+          </label>
+          <input id={`until-${id}`} type="date" className="input min-h-[40px] text-sm" value={until} onChange={(e) => setUntil(e.target.value)} required />
+          <label className="block text-xs font-semibold text-cocoa" htmlFor={`reason-${id}`}>
+            Motivo
+          </label>
+          <input id={`reason-${id}`} className="input min-h-[40px] text-sm" value={reason} onChange={(e) => setReason(e.target.value)} required />
+          <Button type="submit" className="min-h-[40px] w-full text-sm" loading={pending}>
+            Confirmar prorrogação
+          </Button>
+        </form>
+      ) : null}
       {msg ? <p className="text-xs text-mute">{msg}</p> : null}
     </div>
   );

@@ -11,7 +11,7 @@ jurídica ou de implementação técnica.
 
 | # | Ponto | Por quê | Ação |
 |---|---|---|---|
-| J1 | **Prazo de 6 meses não está implementado** | Os Termos dizem que o acesso dura 6 meses, mas hoje toda compra Hotmart gera acesso **sem data de expiração** (ver seção 3) | Aprovar a implementação da seção 3, ou ajustar o texto dos Termos até lá |
+| J1 | **Prazo de 6 meses: implementado na branch, falta aplicar em produção** | O código e a migração estão prontos (ver `ACCESS_EXPIRATION.md`). Até a migração ser aplicada e o código publicado, compras continuam sem data de término | Aprovar a migração e a publicação |
 | J2 | **Base legal para dados de saúde** | A Política usa o art. 11, II, "d" e "f" (exercício regular de direitos em contrato e tutela da saúde por profissional de saúde). O enquadramento em "tutela da saúde" para um app de autoacompanhamento é discutível. **O app não coleta consentimento específico** (art. 11, I) | Advogada(o) decidir a base. Se for consentimento, implementar aceite específico e destacado no primeiro acesso, com registro de data e versão (seção 4, P1) |
 | J3 | **Aceite dos Termos** | O texto diz "Ao entrar no aplicativo, você declara que leu e concorda". Não há caixa de aceite nem registro do aceite | Decidir se basta o aceite por navegação ou se haverá aceite explícito registrado |
 | J4 | **Transferência internacional** | Supabase está em São Paulo. A Vercel executa o servidor, por padrão, nos EUA (não há `vercel.json` fixando a região). O provedor de e-mail (Resend) também é estrangeiro | Validar a redação do art. 33. Opcional: fixar a região `gru1` (São Paulo) na Vercel |
@@ -32,39 +32,10 @@ jurídica ou de implementação técnica.
   titulares. Não há procedimento interno documentado.
 - **Idade mínima de 18 anos:** declarada na Política. O app não verifica idade.
 
-## 3. Auditoria do prazo de acesso de 6 meses
+## 3. Prazo de acesso de 6 meses
 
-| Pergunta | Situação atual |
-|---|---|
-| A data da compra aprovada é registrada? | **Parcialmente.** `granted_at` guarda a hora em que o webhook foi **processado**, não a data de aprovação enviada pela Hotmart (`data.purchase.approved_date`, que o app recebe mas não usa). `last_event_at` guarda a data do último evento aplicado |
-| Existe data de expiração? | **Existe o campo** `entitlements.access_expires_at`, e o banco **já bloqueia** o acesso quando a data passa (`has_access_for`, coberto por teste). **O webhook nunca preenche esse campo:** compras Hotmart ficam com acesso sem prazo. Só a liberação manual do admin aceita data de expiração |
-| Bloqueia sozinho após 6 meses? | **Não**, para compras Hotmart |
-| Reembolso, chargeback e cancelamento | **Funcionam:** revogam por transação, com proteção contra eventos fora de ordem (testado) |
-| Reenvios e eventos repetidos | **Seguros:** o mesmo evento não é aplicado duas vezes; "compra completa" não cria outro acesso. **Atenção:** numa **reativação** (aprovação nova após reembolso), `granted_at` é reiniciado. Se o prazo fosse calculado a partir de `granted_at`, a reativação daria mais 6 meses |
-| Compras anteriores | Cada transação gera um acesso próprio. Uma segunda compra cria outro acesso, válido independentemente do primeiro |
-| Situação "expirado" | O status `expired` nunca é gravado. A expiração vale pela data. No admin, um acesso vencido continua aparecendo como `active` (com a linha "expira em …"). O botão **Reativar** não altera a data de expiração, então não devolve acesso vencido |
-
-### Solução recomendada (aguarda autorização)
-
-1. **Webhook:** ao **criar** o acesso de uma compra aprovada, gravar
-   `access_expires_at = data de aprovação + 6 meses`. A data de aprovação vem de
-   `purchase.approved_date`; na falta dela, usa-se a data do evento e, por último, o horário de
-   recebimento. Cálculo em meses de calendário, no fuso America/Sao_Paulo.
-2. **Não alterar o prazo** em reenvios, em "compra completa" nem em eventos fora de ordem. Na
-   **reativação**, manter o prazo original (regra a confirmar: reativar após reembolso devolve
-   o prazo restante ou concede um novo?).
-3. Guardar a data de aprovação num campo próprio (`purchase_approved_at`), sem reaproveitar
-   `granted_at`.
-4. **Compra real já existente:** preencher a expiração dela com base na data de aprovação
-   registrada na Hotmart (correção pontual de dados, com sua autorização).
-5. Opcional: deixar o prazo configurável (`HOTMART_ACCESS_MONTHS=6`). É uma variável nova e
-   exige autorização.
-6. Admin: mostrar "Expirado" quando a data passou e permitir **prorrogar** (definir nova data),
-   além de reativar.
-7. App: mostrar no Perfil "Seu acesso vai até dd/mm/aaaa". A tela de sem acesso já trata o
-   caso "O período do seu acesso terminou."
-8. Testes: compra → expira em 6 meses; reenvio não prorroga; reembolso dentro do prazo revoga;
-   reativação respeita a regra escolhida; bloqueio automático no dia seguinte ao vencimento.
+Implementado na branch `black-app-2026`. Regras, decisão sobre compras sobrepostas e passo a passo
+da migração estão em `ACCESS_EXPIRATION.md`.
 
 ## 4. Privacidade e dados sensíveis (LGPD)
 

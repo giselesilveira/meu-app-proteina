@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/access";
+import { endOfAccessDay, formatAccessUntil } from "@/lib/access-period";
+import { addDays, isISODate, localDateISO } from "@/lib/dates";
 import { validateFoodCsv, type FoodCsvRow } from "@/lib/csv";
 import { isValidEmail, normalizeEmail } from "@/lib/email";
 import { normalizeText } from "@/lib/search";
@@ -63,6 +65,49 @@ export async function reactivateEntitlement(id: string): Promise<ActionResult> {
   return { ok: true, message: "Acesso reativado." };
 }
 
+const extendSchema = z.object({
+  id: z.string().uuid(),
+  until: z.string(),
+  reason: z.string().trim().min(3, "Informe o motivo.").max(300),
+});
+
+/**
+ * Prorroga o acesso até o fim do dia informado. Só para acessos não revogados
+ * (revogado: reative primeiro). A nova data precisa ser futura, posterior ao
+ * vencimento atual e no máximo 24 meses à frente.
+ */
+export async function extendEntitlement(input: z.input<typeof extendSchema>): Promise<ActionResult> {
+  const admin = await requireAdmin();
+  const parsed = extendSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Confira os dados." };
+  const { id, until, reason } = parsed.data;
+  const today = localDateISO(new Date());
+  if (!isISODate(until) || until < today) return { ok: false, error: "Escolha uma data a partir de hoje." };
+  if (until > addDays(today, 730)) return { ok: false, error: "A prorrogação pode ser de no máximo 24 meses." };
+  const newExpiry = endOfAccessDay(until);
+  try {
+    const db = createAdminClient();
+    const { data: ent, error: selErr } = await db.from("entitlements").select("id, status, access_expires_at").eq("id", id).maybeSingle();
+    if (selErr) throw new Error(selErr.message);
+    if (!ent) return { ok: false, error: "Acesso não encontrado." };
+    if (ent.status === "revoked") return { ok: false, error: "Este acesso está revogado. Reative antes de prorrogar." };
+    if (ent.access_expires_at && newExpiry.getTime() <= new Date(ent.access_expires_at).getTime()) {
+      return { ok: false, error: `A nova data deve ser posterior ao vencimento atual (${formatAccessUntil(ent.access_expires_at)}).` };
+    }
+    const { error } = await db.from("entitlements").update({ access_expires_at: newExpiry.toISOString(), status: "active" }).eq("id", id);
+    if (error) throw new Error(error.message);
+    await audit(admin.email, "entitlement_extend", "entitlement", id, {
+      reason,
+      previous_expires_at: ent.access_expires_at,
+      new_expires_at: newExpiry.toISOString(),
+    });
+  } catch (e) {
+    return fail(e, "extend");
+  }
+  revalidatePath("/admin");
+  return { ok: true, message: `Acesso prorrogado até ${formatAccessUntil(newExpiry)}.` };
+}
+
 const manualSchema = z.object({
   email: z.string(),
   reason: z.string().trim().min(3, "Informe o motivo.").max(300),
@@ -77,9 +122,11 @@ export async function grantManualAccess(input: z.input<typeof manualSchema>): Pr
   if (!isValidEmail(email)) return { ok: false, error: "E-mail inválido." };
   let expires: string | null = null;
   if (parsed.data.expiresAt) {
-    const d = new Date(`${parsed.data.expiresAt}T23:59:59-03:00`);
-    if (Number.isNaN(d.getTime()) || d <= new Date()) return { ok: false, error: "A data de expiração precisa ser futura." };
-    expires = d.toISOString();
+    const today = localDateISO(new Date());
+    if (!isISODate(parsed.data.expiresAt) || parsed.data.expiresAt < today) {
+      return { ok: false, error: "A data de expiração precisa ser hoje ou futura." };
+    }
+    expires = endOfAccessDay(parsed.data.expiresAt).toISOString(); // acesso até o fim do dia escolhido
   }
   try {
     const db = createAdminClient();

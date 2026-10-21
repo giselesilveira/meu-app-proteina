@@ -2,7 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { EntitlementRow, HotmartRepository, NewEntitlement, WebhookEventRecord } from "./process";
 
-const ENTITLEMENT_COLUMNS = "id, user_id, email, status, transaction, last_event_at";
+const ENTITLEMENT_COLUMNS = "id, user_id, email, status, transaction, last_event_at, purchase_approved_at, access_expires_at";
 
 export function createSupabaseHotmartRepo(db: SupabaseClient): HotmartRepository {
   return {

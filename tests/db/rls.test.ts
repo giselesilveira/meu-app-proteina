@@ -3,7 +3,7 @@
  * Rodar: DATABASE_URL_TEST=postgres://postgres@localhost:54329/postgres npm run test:db
  * (o teste cria e apaga um banco temporário próprio; ver SETUP.md, seção "Testes").
  */
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -68,7 +68,9 @@ describeDb("banco: migrations + RLS", () => {
         ? stub.split("\n").filter((l) => !l.startsWith("alter default privileges")).join("\n")
         : stub,
     );
-    await db.query(read("supabase/migrations/20261020000001_init.sql"));
+    for (const f of readdirSync(path.join(root, "supabase/migrations")).filter((x) => x.endsWith(".sql")).sort()) {
+      await db.query(read(`supabase/migrations/${f}`));
+    }
     await db.query(read("supabase/seed/taco_food_catalog.sql"));
 
     await db.query(

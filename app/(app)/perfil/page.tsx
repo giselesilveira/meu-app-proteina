@@ -6,6 +6,8 @@ import { isAdminEmail, requireAccess } from "@/lib/access";
 import { format } from "@/lib/nutrition";
 import { publicConfig, supportHref, withBasePath } from "@/lib/public-config";
 import Link from "next/link";
+import { accessState, formatAccessUntil } from "@/lib/access-period";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Perfil" };
@@ -14,6 +16,16 @@ export default async function ProfilePage() {
   const access = await requireAccess();
   const n = access.nutrition!;
   const support = supportHref();
+  // Vencimento: o mais distante entre os acessos válidos (RLS: só os da própria aluna).
+  const db = await createClient();
+  const { data: ents } = await db.from("entitlements").select("status, access_expires_at");
+  const valid = (ents ?? []).filter((e) => accessState(e) === "active");
+  const unlimited = valid.some((e) => !e.access_expires_at);
+  const latest = valid
+    .map((e) => e.access_expires_at as string | null)
+    .filter((d): d is string => Boolean(d))
+    .sort()
+    .pop();
 
   return (
     <>
@@ -27,6 +39,13 @@ export default async function ProfilePage() {
             <p className="label">E-mail</p>
             <p className="rounded-xl bg-sand/50 px-4 py-3 font-semibold">{access.profile.email}</p>
             <p className="mt-1 text-sm text-mute">É o e-mail da sua compra. Para alterar, fale com o suporte.</p>
+          </div>
+          <div className="mt-5">
+            <p className="label">Seu acesso</p>
+            <p className="rounded-xl bg-sand/50 px-4 py-3 font-semibold">
+              {unlimited ? "Sem data de término" : latest ? <>Válido até {formatAccessUntil(latest)}</> : "—"}
+            </p>
+            {!unlimited && latest ? <p className="mt-1 text-sm text-mute">6 meses a partir da confirmação da compra.</p> : null}
           </div>
         </Card>
 

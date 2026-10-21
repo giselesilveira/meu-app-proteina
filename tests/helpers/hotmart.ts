@@ -14,7 +14,7 @@ let counter = 0;
 /** Payload no formato do Webhook 2.0.0 (dados fictícios). */
 export function payload(
   event: string,
-  opts: { id?: string; transaction?: string; email?: string; product?: string; offer?: string; createdAt?: number } = {},
+  opts: { id?: string; transaction?: string; email?: string; product?: string; offer?: string; createdAt?: number; approvedAt?: number | null } = {},
 ) {
   counter += 1;
   return {
@@ -36,6 +36,7 @@ export function payload(
       purchase: {
         transaction: opts.transaction ?? "HP0000000001",
         status: "APPROVED",
+        ...(opts.approvedAt === null ? {} : { approved_date: opts.approvedAt ?? Date.now() - 60_000 }),
         offer: { code: opts.offer ?? OFFER },
         payment: { type: "PIX", pix_code: "000201..." },
       },
@@ -93,5 +94,7 @@ function toRow(e: StoredEntitlement): EntitlementRow {
     status: e.status,
     transaction: e.transaction,
     last_event_at: e.last_event_at,
+    purchase_approved_at: e.purchase_approved_at,
+    access_expires_at: e.access_expires_at,
   };
 }

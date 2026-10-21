@@ -1,6 +1,7 @@
 import { EntitlementActions, ManualGrantForm } from "@/components/admin/access";
 import { Card, Notice } from "@/components/ui";
 import { requireAdmin } from "@/lib/access";
+import { accessState, formatAccessUntil, type AccessState } from "@/lib/access-period";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,7 @@ interface Ent {
   revoked_at: string | null;
   revoke_reason: string | null;
   access_expires_at: string | null;
+  purchase_approved_at: string | null;
   granted_by: string | null;
   reason: string | null;
 }
@@ -42,17 +44,17 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
       emails = (byName ?? []).map((p) => p.email as string);
       let query = db.from("entitlements").select("*").order("created_at", { ascending: false }).limit(200);
       query = emails.length ? query.or(`email.ilike.%${safe}%,email.in.(${emails.map((e) => `"${e}"`).join(",")})`) : query.ilike("email", `%${safe}%`);
-      if (status) query = query.eq("status", status);
       const { data, error } = await query;
       if (error) throw new Error(error.message);
       ents = (data ?? []) as Ent[];
     } else {
-      let query = db.from("entitlements").select("*").order("created_at", { ascending: false }).limit(100);
-      if (status) query = query.eq("status", status);
+      const query = db.from("entitlements").select("*").order("created_at", { ascending: false }).limit(status ? 500 : 100);
       const { data, error } = await query;
       if (error) throw new Error(error.message);
       ents = (data ?? []) as Ent[];
     }
+    // "Expirado" é calculado pela data de vencimento (o status gravado continua "active").
+    if (status) ents = ents.filter((e) => accessState(e) === status);
     const allEmails = [...new Set(ents.map((e) => e.email))];
     if (allEmails.length) {
       const { data: profiles } = await db.from("profiles").select("email, full_name").in("email", allEmails);
@@ -63,7 +65,11 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
     failed = true;
   }
 
-  const { count: activeCount } = await db.from("entitlements").select("id", { count: "exact", head: true }).eq("status", "active");
+  const { count: activeCount } = await db
+    .from("entitlements")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "active")
+    .or(`access_expires_at.is.null,access_expires_at.gt.${new Date().toISOString()}`);
   const { count: profileCount } = await db.from("profiles").select("user_id", { count: "exact", head: true });
 
   return (
@@ -90,8 +96,8 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
           <select name="status" defaultValue={status} className="input w-44" aria-label="Status">
             <option value="">Todos</option>
             <option value="active">Ativos</option>
-            <option value="revoked">Revogados</option>
             <option value="expired">Expirados</option>
+            <option value="revoked">Revogados</option>
           </select>
           <button className="min-h-[56px] rounded-xl bg-ink px-6 font-semibold text-cream">Buscar</button>
         </form>
@@ -117,9 +123,14 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
                     <p className="text-xs text-taupe">{e.user_id ? "Já entrou no app" : "Ainda não entrou"}</p>
                   </td>
                   <td className="px-3 py-3">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${e.status === "active" ? "bg-copper/15 text-copper-dark" : "bg-sand text-cocoa"}`}>
-                      {e.status}
-                    </span>
+                    <StateBadge state={accessState(e)} />
+                    {e.access_expires_at ? (
+                      <p className="mt-1 text-xs text-mute">
+                        {accessState(e) === "expired" ? "venceu em" : "até"} {formatAccessUntil(e.access_expires_at)}
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-xs text-mute">sem data de término</p>
+                    )}
                     {e.revoke_reason ? <p className="mt-1 text-xs text-mute">{e.revoke_reason}</p> : null}
                   </td>
                   <td className="px-3 py-3">
@@ -133,12 +144,12 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
                     <p className="text-mute">{e.offer_code ?? "—"}</p>
                   </td>
                   <td className="px-3 py-3 text-xs">
-                    <p>{dt(e.granted_at)}</p>
+                    <p>liberado {dt(e.granted_at)}</p>
+                    {e.purchase_approved_at ? <p className="text-mute">compra aprovada {dt(e.purchase_approved_at)}</p> : null}
                     {e.revoked_at ? <p className="text-mute">revogado {dt(e.revoked_at)}</p> : null}
-                    {e.access_expires_at ? <p className="text-mute">expira {dt(e.access_expires_at)}</p> : null}
                   </td>
                   <td className="px-3 py-3">
-                    <EntitlementActions id={e.id} status={e.status} />
+                    <EntitlementActions id={e.id} state={accessState(e)} />
                   </td>
                 </tr>
               ))}
@@ -155,4 +166,15 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
       </section>
     </div>
   );
+}
+
+const STATE_LABEL: Record<AccessState, { label: string; cls: string }> = {
+  active: { label: "Ativo", cls: "bg-copper/15 text-copper-dark" },
+  expired: { label: "Expirado", cls: "bg-gold/25 text-cocoa" },
+  revoked: { label: "Revogado", cls: "bg-danger/10 text-danger" },
+};
+
+function StateBadge({ state }: { state: AccessState }) {
+  const s = STATE_LABEL[state];
+  return <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${s.cls}`}>{s.label}</span>;
 }

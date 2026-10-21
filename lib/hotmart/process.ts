@@ -1,3 +1,4 @@
+import { accessPeriodEnd, HOTMART_ACCESS_MONTHS } from "../access-period";
 import { normalizeEmail, isValidEmail } from "../email";
 import { actionFor } from "./events";
 import { hotmartPayloadSchema, redactPayload, toDate, type HotmartPayload } from "./schema";
@@ -12,6 +13,8 @@ export interface EntitlementRow {
   status: EntitlementStatus;
   transaction: string;
   last_event_at: string | null;
+  purchase_approved_at: string | null;
+  access_expires_at: string | null;
 }
 
 export interface NewEntitlement {
@@ -28,6 +31,10 @@ export interface NewEntitlement {
   revoke_reason: string | null;
   last_event_at: string;
   last_event_type: string;
+  /** Data real de aprovação da compra (Hotmart purchase.approved_date). */
+  purchase_approved_at: string | null;
+  /** Fim exclusivo do acesso: 00h00 (São Paulo) do dia seguinte ao último dia. */
+  access_expires_at: string | null;
 }
 
 export interface WebhookEventRecord {
@@ -52,6 +59,8 @@ export interface HotmartConfig {
   hottok: string;
   allowedProductUcodes: string[];
   allowedOfferCodes: string[];
+  /** Meses de acesso por compra (padrão: 6). */
+  accessMonths?: number;
 }
 
 export interface ProcessDeps {
@@ -151,6 +160,10 @@ async function applyEvent(payload: HotmartPayload, transaction: string | null, d
     return { status: "ignored", detail: "evento mais antigo que o último aplicado nesta transação" };
   }
 
+  // Prazo: conta da APROVAÇÃO real da compra; na falta dela, da data do evento.
+  const approvedAt = toDate(payload.data.purchase?.approved_date) ?? eventAt;
+  const months = deps.config.accessMonths ?? HOTMART_ACCESS_MONTHS;
+
   const rawEmail = payload.data.buyer?.email ?? "";
   const email = rawEmail ? normalizeEmail(rawEmail) : null;
   const buyerUcode = payload.data.buyer?.ucode?.trim() || null;
@@ -164,6 +177,17 @@ async function applyEvent(payload: HotmartPayload, transaction: string | null, d
 
     if (existing) {
       const reactivated = existing.status !== "active";
+      // O prazo NUNCA é reiniciado nem prorrogado por reenvio, "compra completa" ou reativação.
+      // Só é preenchido se ainda não existir (acesso antigo ou revogação que chegou antes da aprovação).
+      const period: { purchase_approved_at?: string; access_expires_at?: string } = existing.access_expires_at
+        ? {}
+        : (() => {
+            const base = existing.purchase_approved_at ? new Date(existing.purchase_approved_at) : approvedAt;
+            return {
+              purchase_approved_at: base.toISOString(),
+              access_expires_at: accessPeriodEnd(base, months).toISOString(),
+            };
+          })();
       await deps.repo.updateEntitlement(existing.id, {
         status: "active",
         revoked_at: null,
@@ -174,9 +198,14 @@ async function applyEvent(payload: HotmartPayload, transaction: string | null, d
         hotmart_buyer_ucode: buyerUcode,
         last_event_at: eventAt.toISOString(),
         last_event_type: payload.event,
-        ...(reactivated ? { granted_at: now.toISOString() } : {}),
+        ...period,
       });
-      return { status: "processed", detail: reactivated ? "acesso reativado" : "acesso já ativo" };
+      const expiresAt = period.access_expires_at ?? existing.access_expires_at;
+      const stillValid = !expiresAt || new Date(expiresAt).getTime() > now.getTime();
+      return {
+        status: "processed",
+        detail: reactivated ? (stillValid ? "acesso reativado" : "acesso reativado, mas o prazo já venceu") : "acesso já ativo",
+      };
     }
 
     await deps.repo.insertEntitlement({
@@ -193,6 +222,8 @@ async function applyEvent(payload: HotmartPayload, transaction: string | null, d
       revoke_reason: null,
       last_event_at: eventAt.toISOString(),
       last_event_type: payload.event,
+      purchase_approved_at: approvedAt.toISOString(),
+      access_expires_at: accessPeriodEnd(approvedAt, months).toISOString(),
     });
     if (deps.sendWelcomeEmail) {
       // E-mail é opcional: falha no envio não desfaz a liberação.
@@ -233,6 +264,8 @@ async function applyEvent(payload: HotmartPayload, transaction: string | null, d
     revoke_reason: payload.event,
     last_event_at: eventAt.toISOString(),
     last_event_type: payload.event,
+    purchase_approved_at: null,
+    access_expires_at: null,
   });
   return { status: "processed", detail: "transação registrada como revogada" };
 }
