@@ -1,10 +1,11 @@
 import "server-only";
 import { cache } from "react";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { safeTimezone } from "./dates";
 import { serverEnv } from "./env";
-import { normalizeEmail } from "./email";
+import { isAdminUser } from "./admin";
+import { maskEmail, normalizeEmail } from "./email";
 import { toNumbers } from "./numbers";
 import { createClient } from "./supabase/server";
 import type { NutritionProfile, Profile } from "./types";
@@ -82,7 +83,7 @@ export type AppAccess = Extract<AccessState, { kind: "ok" }>;
 export async function requireAccess(opts: { allowIncompleteOnboarding?: boolean } = {}): Promise<AppAccess> {
   const access = await getAccess();
   if (access.kind === "anonymous") redirect("/entrar");
-  if (access.kind === "no_access") redirect("/sem-acesso");
+  if (access.kind === "no_access") redirect(isAdminUser(access.user, process.env.ADMIN_EMAILS) ? "/admin" : "/sem-acesso");
   if (access.kind === "error") redirect("/erro");
   if (!opts.allowIncompleteOnboarding && (!access.profile.onboarding_completed_at || !access.nutrition)) {
     redirect("/boas-vindas");
@@ -101,14 +102,22 @@ export function isAdminEmail(email: string | null | undefined): boolean {
   return serverEnv.adminEmails().includes(normalizeEmail(email));
 }
 
-/** Área admin: exige login com e-mail listado em ADMIN_EMAILS (checado no servidor). */
+/**
+ * Área admin: exige sessão válida e e-mail confirmado listado em ADMIN_EMAILS,
+ * verificado no servidor. NÃO depende de compra: o admin acessa o painel sem
+ * entitlement, mas também não ganha acesso às telas/dados de aluna (essas
+ * continuam exigindo entitlement e RLS). Quem não é admin recebe 404.
+ */
 export const requireAdmin = cache(async (): Promise<{ user: User; email: string }> => {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/entrar");
-  if (!user.email_confirmed_at || !isAdminEmail(user.email)) redirect("/");
+  if (!isAdminUser(user, process.env.ADMIN_EMAILS)) {
+    console.warn(`[admin] acesso negado para ${maskEmail(user.email)}`);
+    notFound();
+  }
   return { user, email: normalizeEmail(user.email!) };
 });
 

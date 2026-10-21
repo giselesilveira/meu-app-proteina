@@ -5,7 +5,7 @@ PostgREST 12.2 + Supabase Auth v2.170 + SMTP de teste), com o **build de produç
 (`next build` + `next start`, `NEXT_PUBLIC_BASE_PATH=/app`), no navegador Chromium simulando
 **iPhone 13** (fuso America/Sao_Paulo), **Pixel 7** e desktop 1280 px.
 
-Resultado: **39 de 39 verificações aprovadas.**
+Resultado: **44 de 44 verificações aprovadas** (21/10/2026, incluindo o fluxo do administrador).
 
 ```
 ✔ webhook com hottok errado recusado (401)
@@ -41,7 +41,12 @@ Resultado: **39 de 39 verificações aprovadas.**
 ✔ reativação devolve acesso aos mesmos dados
 ✔ e-mail sem compra: tela amigável
 ✔ botão Falar com o suporte
-✔ usuária comum não acessa /admin
+✔ usuária comum recebe 404 em /admin/webhooks (validação no servidor)
+✔ usuária comum recebe 404 em /admin
+✔ admin sem compra é levado direto ao painel após o login
+✔ admin sem compra não entra nas telas de aluna (vai para o painel)
+✔ admin sem compra não acessa a API de aluna
+✔ admin sem compra abre /admin/webhooks
 ✔ admin vê a aluna e a transação
 ✔ acesso manual registrado com responsável
 ✔ admin cadastra alimento de rótulo com responsável e porção

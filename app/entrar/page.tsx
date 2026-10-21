@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Wordmark } from "@/components/brand";
 import { LoginForm } from "@/components/login-form";
 import { getAccess } from "@/lib/access";
+import { isAdminUser } from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Entrar" };
@@ -9,7 +10,7 @@ export const metadata = { title: "Entrar" };
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
   const access = await getAccess();
   if (access.kind === "ok") redirect("/");
-  if (access.kind === "no_access") redirect("/sem-acesso");
+  if (access.kind === "no_access") redirect(isAdminUser(access.user, process.env.ADMIN_EMAILS) ? "/admin" : "/sem-acesso");
   const { erro } = await searchParams;
 
   return (

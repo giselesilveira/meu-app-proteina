@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Wordmark } from "@/components/brand";
 import { ButtonLink, Card } from "@/components/ui";
 import { getAccess } from "@/lib/access";
+import { isAdminUser } from "@/lib/admin";
 import { supportHref, withBasePath } from "@/lib/public-config";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,8 @@ export default async function NoAccessPage() {
   const access = await getAccess();
   if (access.kind === "anonymous") redirect("/entrar");
   if (access.kind === "ok") redirect("/");
+  // Admin sem compra: vai para o painel (não recebe acesso de aluna).
+  if (access.kind === "no_access" && isAdminUser(access.user, process.env.ADMIN_EMAILS)) redirect("/admin");
   const email = access.kind === "no_access" ? access.user.email : null;
   const reason = access.kind === "no_access" ? access.reason : "none";
   const support = supportHref();

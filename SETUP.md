@@ -130,9 +130,10 @@ produto. Depois teste com o **HOTMART_PURCHASE_TEST.md** e o **HOTMART_REFUND_TE
 
 ## PARTE 4: Conferência final
 1. Abra `https://nutrigiselesilveira.com.br/app`: deve aparecer a tela **Entrar**.
-2. Entre com um dos e-mails de admin e abra `…/app/admin`: deve abrir o painel.
-   (Admins entram no painel mesmo sem compra. Para usar o app como aluna, libere um acesso
-   manual para o próprio e-mail em **Liberar acesso manual**.)
+2. Entre com um dos e-mails de admin: sem compra, você é levada **direto ao painel**
+   (`/admin`). Ser admin não libera as telas de aluna: para usar o app como aluna, libere um
+   acesso manual para o próprio e-mail em **Liberar acesso manual**. Quem não é admin recebe
+   "Página não encontrada" ao tentar abrir `/admin`.
 3. Faça a compra de teste do HOTMART_PURCHASE_TEST.md.
 
 ---
