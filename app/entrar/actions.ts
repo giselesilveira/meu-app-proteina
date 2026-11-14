@@ -2,17 +2,39 @@
 
 import { z } from "zod";
 import { track } from "@/lib/analytics";
-import { isValidEmail, normalizeEmail } from "@/lib/email";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isValidEmail, normalizeEmail, parseEmailList } from "@/lib/email";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
 
 /**
- * Login sem senha: envia um código de 6 dígitos (e um link) para o e-mail.
- * A mesma resposta é dada para qualquer e-mail, para não revelar quem comprou.
+ * Login sem senha: envia código apenas para compras com acesso ativo ou admins.
+ * Consulta de compras acontece exclusivamente no servidor.
  */
 export async function requestLoginCode(emailInput: string): Promise<ActionResult> {
   const email = normalizeEmail(emailInput ?? "");
   if (!isValidEmail(email)) return { ok: false, error: "Digite um e-mail válido." };
+  // Compras da Hotmart são registradas antes do primeiro login.
+  // Não exigir usuário de autenticação existente para a primeira entrada.
+  try {
+    const isAdmin = parseEmailList(process.env.ADMIN_EMAILS).includes(email);
+    if (!isAdmin) {
+      const { data, error: accessError } = await createAdminClient()
+        .from("entitlements")
+        .select("id")
+        .eq("email", email)
+        .eq("status", "active")
+        .or(`access_expires_at.is.null,access_expires_at.gt.${new Date().toISOString()}`)
+        .limit(1);
+      if (accessError) throw accessError;
+      if (!data?.length) {
+        return { ok: false, error: "Não encontramos uma compra ativa vinculada a este e-mail. Confira o endereço usado na compra ou entre em contato com o suporte." };
+      }
+    }
+  } catch (error) {
+    console.error("[login] consulta de acesso", error instanceof Error ? error.message : error);
+    return { ok: false, error: "Não conseguimos verificar seu acesso agora. Tente novamente em instantes." };
+  }
   const supabase = await createClient();
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/+$/, "");
   const { error } = await supabase.auth.signInWithOtp({
