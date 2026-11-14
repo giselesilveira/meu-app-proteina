@@ -60,15 +60,10 @@ export async function verifyLoginCode(emailInput: string, codeInput: string): Pr
     return { ok: false, error: "Confira o código recebido no e-mail." };
   }
   const supabase = await createClient();
-  // Contas existentes usam OTP de login; primeiro cadastro usa OTP de confirmação.
-  // A mesma tela aceita ambos, sem exigir um segundo e-mail.
-  const loginAttempt = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
-  if (loginAttempt.error) {
-    const signupAttempt = await supabase.auth.verifyOtp({ email, token: code, type: "signup" });
-    if (signupAttempt.error) {
-      console.warn("[login] verifyOtp", signupAttempt.error.status, signupAttempt.error.message);
-      return { ok: false, error: "Código inválido ou expirado. Confira o e-mail ou peça um novo código." };
-    }
+  const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
+  if (error) {
+    console.warn("[login] verifyOtp", error.status, error.message);
+    return { ok: false, error: "Código inválido ou expirado. Confira o e-mail ou peça um novo código." };
   }
   const { data: hasAccess } = await supabase.rpc("claim_my_entitlements");
   if (hasAccess) await track(supabase, "app_login");
