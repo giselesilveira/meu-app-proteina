@@ -11,10 +11,33 @@ import { IconChevronLeft, IconSearch, IconStar } from "./icons";
 import { Button, ButtonLink, Notice, Spinner } from "./ui";
 
 function sourceLabel(food: FoodItem) {
-  if (food.source_type === "TACO") return `TACO${food.taco_code ? ` nº ${food.taco_code}` : ""}`;
+  if (food.source_type === "TACO") return "Tabela anterior";
   if (food.source_type === "label") return `Rótulo${food.brand ? ` · ${food.brand}` : ""}`;
   return "Validado pela equipe";
 }
+
+// Medidas da calculadora original: conversão pela proteína por unidade e por 100 g.
+const UNIT_PROTEIN: Record<string, { label: string; protein: number }> = {
+  "Ovos Cozidos": { label: "Unidades", protein: 6 },
+  "Queijo Minas": { label: "Unidades", protein: 7 },
+  "Whey Protein": { label: "Scoops", protein: 20 },
+  "Ovos de Codorna": { label: "Unidades", protein: 1.3 },
+  "Iogurte do Tambo": { label: "Potes (200 g)", protein: 9.6 },
+  "Proteína do Colágeno": { label: "Scoops", protein: 20 },
+  "Beef Protein": { label: "Scoops", protein: 25 },
+  "Clara de Ovo (de galinha)": { label: "Unidades", protein: 3.6 },
+};
+function unitMeasure(name: string, proteinPer100g?: number) {
+  const item = UNIT_PROTEIN[name];
+  const protein = proteinPer100g ?? ORIGINAL_PROTEIN[name];
+  return item && protein ? { ...item, gramsEquivalent: (item.protein / protein) * 100 } : null;
+}
+const ORIGINAL_PROTEIN: Record<string, number> = {
+  "Ovos Cozidos": 13, "Queijo Minas": 18, "Whey Protein": 80,
+  "Ovos de Codorna": 13, "Iogurte do Tambo": 4.8,
+  "Proteína do Colágeno": 90, "Beef Protein": 90,
+  "Clara de Ovo (de galinha)": 11,
+};
 
 export function FoodLogger(props: {
   date: string;
@@ -119,7 +142,7 @@ function FoodSearch({ onSelect }: { onSelect: (f: FoodItem) => void }) {
           type="search"
           autoComplete="off"
           enterKeyHint="search"
-          placeholder="Ex.: frango grelhado, ovo, arroz"
+          placeholder="Ex.: frango, ovos, whey"
           className="input pl-12"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -202,17 +225,20 @@ function AmountPanel({
   const router = useRouter();
   const amountId = useId();
   const [amount, setAmount] = useState("");
+  const [unitMode, setUnitMode] = useState<"grams" | "units">("grams");
+  const alternate = unitMeasure(food.display_name);
   const [meal, setMeal] = useState<Meal | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [favPending, startFav] = useTransition();
-  const grams = parseDecimal(amount);
+  const quantity = parseDecimal(amount);
+  const grams = quantity === null ? null : unitMode === "units" && alternate ? quantity * alternate.gramsEquivalent : quantity;
   const valid = grams !== null && grams > 0 && grams <= 3000;
-  const preview = valid ? consumedFor(food, grams) : null;
+  const preview = valid ? consumedFor(food, grams!) : null;
 
   function add() {
     setError(null);
-    if (!valid) return setError("Informe a quantidade em gramas.");
+    if (!valid) return setError("Informe uma quantidade válida.");
     startTransition(async () => {
       const res = await addFoodEntry({ foodId: food.id, amountG: grams!, meal, date });
       if (!res.ok) return setError(res.error);
@@ -265,8 +291,14 @@ function AmountPanel({
 
         <div className="mt-5">
           <label htmlFor={amountId} className="label">
-            Quantidade consumida (gramas)
+            Quantidade consumida ({unitMode === "grams" ? "gramas" : alternate?.label ?? "unidades"})
           </label>
+          {alternate ? (
+            <div className="mb-3 flex gap-2" role="group" aria-label="Unidade de medida">
+              <button type="button" aria-pressed={unitMode === "grams"} onClick={() => { setUnitMode("grams"); setAmount(""); }} className={`min-h-[44px] rounded-full border px-4 font-semibold ${unitMode === "grams" ? "border-ink bg-ink text-cream" : "border-bark/15"}`}>Gramas</button>
+              <button type="button" aria-pressed={unitMode === "units"} onClick={() => { setUnitMode("units"); setAmount(""); }} className={`min-h-[44px] rounded-full border px-4 font-semibold ${unitMode === "units" ? "border-ink bg-ink text-cream" : "border-bark/15"}`}>{alternate.label}</button>
+            </div>
+          ) : null}
           <input
             id={amountId}
             className="input text-[1.4rem] font-bold"
@@ -281,23 +313,15 @@ function AmountPanel({
 
         <div className="mt-5 rounded-xl bg-espresso p-4 text-cream" aria-live="polite">
           {preview ? (
-            <dl className="grid grid-cols-3 gap-2 text-center">
+            <dl className="text-center">
               <div>
                 <dt className="text-[0.8125rem] text-sand/75 min-[400px]:uppercase min-[400px]:tracking-[0.1em]">Proteína</dt>
                 <dd className="tabular whitespace-nowrap text-[clamp(1rem,4.8vw,1.35rem)] font-bold text-gold">{format.protein(preview.protein)}</dd>
               </div>
-              <div>
-                <dt className="text-[0.8125rem] text-sand/75 min-[400px]:uppercase min-[400px]:tracking-[0.1em]">Calorias</dt>
-                <dd className="tabular whitespace-nowrap text-[clamp(1rem,4.8vw,1.35rem)] font-bold">{format.calories(preview.calories)}</dd>
-              </div>
-              <div>
-                <dt className="text-[0.8125rem] text-sand/75 min-[400px]:uppercase min-[400px]:tracking-[0.1em]">Gordura</dt>
-                <dd className="tabular whitespace-nowrap text-[clamp(1rem,4.8vw,1.35rem)] font-bold">{preview.fat !== null ? format.fat(preview.fat) : "—"}</dd>
-              </div>
             </dl>
           ) : (
             <p className="text-center text-sand/80">
-              Em 100 g: {format.protein(food.protein_per_100g)} de proteína · {format.calories(food.calories_per_100g)}
+              Em 100 g: {format.protein(food.protein_per_100g)} de proteína
             </p>
           )}
         </div>
