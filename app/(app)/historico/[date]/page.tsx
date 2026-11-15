@@ -39,11 +39,9 @@ export default async function DayPage({ params }: { params: Promise<{ date: stri
         </nav>
         <PageHeader eyebrow={date === today ? "Hoje" : "Histórico"} title={formatLongDate(date)} />
 
-        <Card className="mb-6 grid grid-cols-2 gap-5 p-5 sm:grid-cols-4">
+        <Card className="mb-6 grid grid-cols-2 gap-5 p-5">
           <Stat label="Meta" value={format.protein(p.target)} />
           <Stat label="Proteína" value={format.protein(p.consumed)} hint={p.reached ? "Meta atingida ✓" : undefined} />
-          <Stat label="Calorias" value={format.calories(totals.calories)} />
-          <Stat label="Gorduras" value={format.fat(totals.fat ?? 0)} />
         </Card>
 
         <section className="mb-6">

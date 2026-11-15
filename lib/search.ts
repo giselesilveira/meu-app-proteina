@@ -25,3 +25,21 @@ export function searchTokens(query: string): string[] {
   });
   return [...new Set(tokens)].slice(0, 8);
 }
+
+/**
+ * Filtra a lista completa de alimentos no navegador (catálogo pequeno).
+ * Mesma regra do banco: todos os termos precisam aparecer no nome.
+ * Ordem: nomes que começam com o texto digitado primeiro, depois alfabética.
+ */
+export function filterFoods<T extends { display_name: string }>(foods: T[], query: string): T[] {
+  const sorted = [...foods].sort((a, b) => a.display_name.localeCompare(b.display_name, "pt-BR"));
+  const tokens = searchTokens(query);
+  if (tokens.length === 0) return sorted;
+  const q = normalizeText(query.trim());
+  return sorted
+    .filter((f) => {
+      const name = normalizeText(f.display_name);
+      return tokens.every((t) => name.includes(t));
+    })
+    .sort((a, b) => Number(normalizeText(b.display_name).startsWith(q)) - Number(normalizeText(a.display_name).startsWith(q)));
+}
