@@ -20,7 +20,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
   const from = addDays(to, -(PAGE_DAYS - 1));
   const db = await createClient();
 
-  let days: { date: string; protein: number; calories: number; fat: number; count: number; target: number; checkin: boolean }[] = [];
+  let days: { date: string; protein: number; count: number; target: number; checkin: boolean }[] = [];
   let failed = false;
   try {
     const [entries, history, checkins] = await Promise.all([getEntriesBetween(db, from, to), getTargetHistory(db), getCheckins(db)]);
@@ -34,8 +34,6 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
         return {
           date,
           protein: t.protein,
-          calories: t.calories,
-          fat: t.fat ?? 0,
           count: dayEntries.length,
           target: targetForDate(history, date)?.protein_target_g ?? access.nutrition!.protein_target_g,
           checkin: checkinDates.has(date),
@@ -71,7 +69,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                     {p.reached ? <IconCheck size={18} className="ml-1 inline text-copper" aria-label="meta atingida" /> : null}
                   </p>
                   <p className="tabular text-sm text-mute">
-                    {format.calories(d.calories)} · {format.fat(d.fat)} gord. · {d.count} {d.count === 1 ? "alimento" : "alimentos"}
+                    {d.count} {d.count === 1 ? "alimento" : "alimentos"}
                     {d.checkin ? " · check-in" : ""}
                   </p>
                 </div>
