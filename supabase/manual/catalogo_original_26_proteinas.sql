@@ -33,7 +33,12 @@ WITH original (name, display_name, category, preparation, protein_per_100g, calo
   ('Fígado (Bovino)','Fígado (Bovino)','Proteínas',NULL,27,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true)
 )
 INSERT INTO public.food_catalog (name,display_name,category,preparation,protein_per_100g,calories_per_100g,fat_per_100g,carbohydrate_per_100g,source_type,source_reference,is_active)
-SELECT * FROM original o
+SELECT
+  o.name::text, o.display_name::text, o.category::text, o.preparation::text,
+  o.protein_per_100g::numeric, o.calories_per_100g::numeric,
+  o.fat_per_100g::numeric, o.carbohydrate_per_100g::numeric,
+  o.source_type::text, o.source_reference::text, o.is_active::boolean
+FROM original o
 WHERE NOT EXISTS (
  SELECT 1 FROM public.food_catalog f WHERE f.display_name=o.display_name AND f.source_reference='Calculadora original da Nutri Gisele'
 );
