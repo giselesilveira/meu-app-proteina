@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { EntryList } from "@/components/entry-list";
 import { IconCalendar, IconChart, IconPlus, IconStar } from "@/components/icons";
-import { Bar, ProgressRing } from "@/components/progress-ring";
+import { ProgressRing } from "@/components/progress-ring";
 import { ButtonLink, Card, Notice } from "@/components/ui";
 import { requireAccess } from "@/lib/access";
 import { getCheckins, getEntriesForDay, getFavorites } from "@/lib/data/queries";
@@ -113,16 +113,7 @@ export default async function TodayPage() {
         <EntryList entries={entries} emptyHref="/registrar" />
       </section>
 
-      {/* 5. Calorias e gorduras */}
-      <Card className="p-5">
-        <h2 className="mb-4 text-lg font-bold">Resumo do dia</h2>
-        <div className="grid grid-cols-2 gap-5">
-          <SecondaryMetric label="Calorias" value={format.calories(totals.calories)} consumed={totals.calories} target={nutrition.calorie_target} unit="kcal" />
-          <SecondaryMetric label="Gorduras" value={format.fat(totals.fat ?? 0)} consumed={totals.fat ?? 0} target={nutrition.fat_target_g} unit="g" />
-        </div>
-      </Card>
-
-      {/* 6. Check-in (segunda e sexta) */}
+      {/* 5. Check-in (segunda e sexta) */}
       {isCheckinDay(today) && !checkedInToday ? (
         <Card className="flex items-center justify-between gap-4 border-gold/40 bg-gold/10 p-5">
           <div>
@@ -148,33 +139,3 @@ export default async function TodayPage() {
   );
 }
 
-function SecondaryMetric({
-  label,
-  value,
-  consumed,
-  target,
-  unit,
-}: {
-  label: string;
-  value: string;
-  consumed: number;
-  target: number | null;
-  unit: string;
-}) {
-  return (
-    <div>
-      <p className="text-[0.8125rem] font-semibold uppercase tracking-[0.08em] text-taupe">{label}</p>
-      <p className="tabular mt-1 whitespace-nowrap text-[clamp(1.1rem,5.4vw,1.4rem)] font-bold">{value}</p>
-      {target ? (
-        <div className="mt-2 space-y-1">
-          <Bar percent={Math.round((consumed / target) * 100)} label={`${label}: progresso da meta`} />
-          <p className="tabular text-sm text-mute">
-            Meta: {new Intl.NumberFormat("pt-BR").format(target)} {unit}
-          </p>
-        </div>
-      ) : (
-        <p className="text-sm text-mute">Consumido hoje</p>
-      )}
-    </div>
-  );
-}
