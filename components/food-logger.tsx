@@ -10,8 +10,6 @@ import { MEALS, type FoodItem, type Meal } from "@/lib/types";
 import { IconChevronLeft, IconSearch, IconStar } from "./icons";
 import { Button, ButtonLink, Notice, Spinner } from "./ui";
 
-const QUICK_AMOUNTS = [50, 100, 150, 200];
-
 function sourceLabel(food: FoodItem) {
   if (food.source_type === "TACO") return `TACO${food.taco_code ? ` nº ${food.taco_code}` : ""}`;
   if (food.source_type === "label") return `Rótulo${food.brand ? ` · ${food.brand}` : ""}`;
@@ -203,7 +201,7 @@ function AmountPanel({
 }) {
   const router = useRouter();
   const amountId = useId();
-  const [amount, setAmount] = useState(food.default_serving_g ? String(food.default_serving_g).replace(".", ",") : "");
+  const [amount, setAmount] = useState("");
   const [meal, setMeal] = useState<Meal | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -211,10 +209,6 @@ function AmountPanel({
   const grams = parseDecimal(amount);
   const valid = grams !== null && grams > 0 && grams <= 3000;
   const preview = valid ? consumedFor(food, grams) : null;
-
-  const quick = [...(food.default_serving_g ? [food.default_serving_g] : []), ...QUICK_AMOUNTS].filter(
-    (v, i, arr) => arr.indexOf(v) === i,
-  );
 
   function add() {
     setError(null);
@@ -283,19 +277,6 @@ function AmountPanel({
             onKeyDown={(e) => e.key === "Enter" && add()}
             autoFocus
           />
-          <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Quantidades rápidas">
-            {quick.map((q) => (
-              <button
-                key={q}
-                type="button"
-                onClick={() => setAmount(String(q).replace(".", ","))}
-                className="min-h-[44px] rounded-full border border-bark/15 bg-white px-4 text-[0.95rem] font-semibold text-cocoa hover:border-copper"
-              >
-                {format.grams(q)}
-                {food.default_serving_g === q && food.serving_label ? ` (${food.serving_label})` : ""}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div className="mt-5 rounded-xl bg-espresso p-4 text-cream" aria-live="polite">
