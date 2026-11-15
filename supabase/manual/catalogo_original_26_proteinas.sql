@@ -1,54 +1,124 @@
--- ATENCAO: executar apenas no banco de TESTES, nunca no banco de producao.
--- Antes de executar, confirmar que o Preview Vercel usa um projeto Supabase separado.
--- Catalogo idempotente: preserva IDs de alimentos ja criados e todos os registros historicos.
--- Coluna calorias=0 apenas por exigencia do esquema legado; nao representa valor nutricional.
+-- Catalogo original de 26 alimentos (calculadora da Nutri Gisele).
+-- ATENCAO: o projeto Supabase e COMPARTILHADO entre Production e Preview.
+-- Executar somente com autorizacao e com o backup CSV de food_catalog em maos.
+--
+-- O que este script faz (tudo em UMA transacao; qualquer erro desfaz tudo):
+--   1. Guarda o estado atual de is_active de todos os alimentos em
+--      public.food_catalog_backup_20261115 (apenas na primeira execucao).
+--   2. Insere os 26 alimentos que ainda nao existem (preserva IDs ja criados).
+--   3. Garante os valores de proteina corretos nos 26 originais.
+--   4. Ativa os 26 originais e DESATIVA (sem excluir) os demais.
+--   5. Confere que ha exatamente 26 alimentos ativos antes do COMMIT.
+-- Nao exclui alimentos, consumos (food_entries), favoritos nem usuarios.
+-- food_entries guarda um snapshot nutricional proprio; o historico nao muda.
+-- Idempotente: pode ser executado de novo sem efeitos adicionais.
+-- Coluna calorias=0 apenas por exigencia do esquema legado; nao e exibida.
+--
+-- Reverter (se necessario):
+--   UPDATE public.food_catalog f SET is_active = b.is_active
+--     FROM public.food_catalog_backup_20261115 b
+--    WHERE b.id = f.id AND f.is_active IS DISTINCT FROM b.is_active;
+--   UPDATE public.food_catalog SET is_active = false
+--    WHERE source_reference = 'Calculadora original da Nutri Gisele'
+--      AND id NOT IN (SELECT id FROM public.food_catalog_backup_20261115);
+
 BEGIN;
-WITH original (name, display_name, category, preparation, protein_per_100g, calories_per_100g, fat_per_100g, carbohydrate_per_100g, source_type, source_reference, is_active) AS (
- VALUES
-  ('Atum Enlatado','Atum Enlatado','Proteínas',NULL,23,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Bife de Alcatra','Bife de Alcatra','Proteínas',NULL,26,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Camarão','Camarão','Proteínas',NULL,20,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Carne Moída (Patinho)','Carne Moída (Patinho)','Proteínas',NULL,24,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Filé de Tilápia','Filé de Tilápia','Proteínas',NULL,21,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Iogurte Grego','Iogurte Grego','Proteínas',NULL,10,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Lombo de Porco','Lombo de Porco','Proteínas',NULL,27,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Ovos Cozidos','Ovos Cozidos','Proteínas',NULL,13,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Peito de Frango','Peito de Frango','Proteínas',NULL,31,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Queijo Minas','Queijo Minas','Proteínas',NULL,18,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Salmão Assado','Salmão Assado','Proteínas',NULL,22,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Sardinha Lata','Sardinha Lata','Proteínas',NULL,24,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Tofu','Tofu','Proteínas',NULL,8,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Whey Protein','Whey Protein','Proteínas',NULL,80,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Ovos de Codorna','Ovos de Codorna','Proteínas',NULL,13,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Iogurte do Tambo','Iogurte do Tambo','Proteínas',NULL,4.8,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Proteína do Colágeno','Proteína do Colágeno','Proteínas',NULL,90,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Beef Protein','Beef Protein','Proteínas',NULL,90,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Clara de Ovo (de galinha)','Clara de Ovo (de galinha)','Proteínas',NULL,11,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Sobrecoxa de Frango','Sobrecoxa de Frango','Proteínas',NULL,25,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Coxa de Frango','Coxa de Frango','Proteínas',NULL,27,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Carne Moída','Carne Moída','Proteínas',NULL,26,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Peixe Cru (Sushi)','Peixe Cru (Sushi)','Proteínas',NULL,20,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Carne de Porco','Carne de Porco','Proteínas',NULL,27,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Coração de Frango','Coração de Frango','Proteínas',NULL,28,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true),
-  ('Fígado (Bovino)','Fígado (Bovino)','Proteínas',NULL,27,0,NULL,NULL,'manual_authorized','Calculadora original da Nutri Gisele',true)
-)
-INSERT INTO public.food_catalog (name,display_name,category,preparation,protein_per_100g,calories_per_100g,fat_per_100g,carbohydrate_per_100g,source_type,source_reference,is_active)
-SELECT
-  o.name::text, o.display_name::text, o.category::text, o.preparation::text,
-  o.protein_per_100g::numeric, o.calories_per_100g::numeric,
-  o.fat_per_100g::numeric, o.carbohydrate_per_100g::numeric,
-  o.source_type::text, o.source_reference::text, o.is_active::boolean
-FROM original o
+
+-- 1. Backup do estado atual (nao sobrescreve um backup ja existente).
+CREATE TABLE IF NOT EXISTS public.food_catalog_backup_20261115 AS
+  SELECT id, display_name, source_type, source_reference, protein_per_100g, is_active, now() AS backed_up_at
+  FROM public.food_catalog;
+ALTER TABLE public.food_catalog_backup_20261115 ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.food_catalog_backup_20261115 FROM anon, authenticated;
+
+-- 2 e 3. Lista oficial.
+CREATE TEMP TABLE original_26 (
+  display_name text PRIMARY KEY,
+  protein_per_100g numeric(7, 2) NOT NULL
+) ON COMMIT DROP;
+
+INSERT INTO original_26 (display_name, protein_per_100g) VALUES
+  ('Atum Enlatado', 23),
+  ('Bife de Alcatra', 26),
+  ('Camarão', 20),
+  ('Carne Moída (Patinho)', 24),
+  ('Filé de Tilápia', 21),
+  ('Iogurte Grego', 10),
+  ('Lombo de Porco', 27),
+  ('Ovos Cozidos', 13),
+  ('Peito de Frango', 31),
+  ('Queijo Minas', 18),
+  ('Salmão Assado', 22),
+  ('Sardinha Lata', 24),
+  ('Tofu', 8),
+  ('Whey Protein', 80),
+  ('Ovos de Codorna', 13),
+  ('Iogurte do Tambo', 4.8),
+  ('Proteína do Colágeno', 90),
+  ('Beef Protein', 90),
+  ('Clara de Ovo (de galinha)', 11),
+  ('Sobrecoxa de Frango', 25),
+  ('Coxa de Frango', 27),
+  ('Carne Moída', 26),
+  ('Peixe Cru (Sushi)', 20),
+  ('Carne de Porco', 27),
+  ('Coração de Frango', 28),
+  ('Fígado (Bovino)', 27);
+
+INSERT INTO public.food_catalog
+  (name, display_name, category, preparation, protein_per_100g, calories_per_100g,
+   fat_per_100g, carbohydrate_per_100g, source_type, source_reference, is_active)
+SELECT o.display_name, o.display_name, 'Proteínas', NULL, o.protein_per_100g, 0::numeric,
+       NULL::numeric, NULL::numeric, 'manual_authorized', 'Calculadora original da Nutri Gisele', true
+FROM original_26 o
 WHERE NOT EXISTS (
- SELECT 1 FROM public.food_catalog f WHERE f.display_name=o.display_name AND f.source_reference='Calculadora original da Nutri Gisele'
+  SELECT 1 FROM public.food_catalog f
+  WHERE f.display_name = o.display_name
+    AND f.source_reference = 'Calculadora original da Nutri Gisele'
 );
--- Reativa o conjunto original e desativa somente os demais itens apos conferir a insercao.
+
+UPDATE public.food_catalog f
+   SET protein_per_100g = o.protein_per_100g
+  FROM original_26 o
+ WHERE f.display_name = o.display_name
+   AND f.source_reference = 'Calculadora original da Nutri Gisele'
+   AND f.protein_per_100g IS DISTINCT FROM o.protein_per_100g;
+
+-- 4. Ativa os originais e desativa os demais (somente linhas que mudam).
 DO $$
 BEGIN
- IF (SELECT count(*) FROM public.food_catalog WHERE source_reference='Calculadora original da Nutri Gisele') <> 26 THEN
-  RAISE EXCEPTION 'Esperados exatamente 26 alimentos originais. Transacao cancelada.';
- END IF;
- UPDATE public.food_catalog
- SET is_active = (source_reference='Calculadora original da Nutri Gisele');
+  IF (SELECT count(*) FROM public.food_catalog WHERE source_reference = 'Calculadora original da Nutri Gisele') <> 26 THEN
+    RAISE EXCEPTION 'Esperados exatamente 26 alimentos originais. Transacao cancelada.';
+  END IF;
 END $$;
+
+UPDATE public.food_catalog
+   SET is_active = (source_reference = 'Calculadora original da Nutri Gisele')
+ WHERE is_active IS DISTINCT FROM (source_reference = 'Calculadora original da Nutri Gisele');
+
+-- 5. Conferencia final.
+DO $$
+DECLARE
+  n_active integer;
+  n_wrong integer;
+BEGIN
+  SELECT count(*) INTO n_active FROM public.food_catalog WHERE is_active;
+  SELECT count(*) INTO n_wrong
+    FROM original_26 o
+    LEFT JOIN public.food_catalog f
+      ON f.display_name = o.display_name
+     AND f.source_reference = 'Calculadora original da Nutri Gisele'
+     AND f.is_active
+   WHERE f.id IS NULL OR f.protein_per_100g <> o.protein_per_100g;
+  IF n_active <> 26 OR n_wrong <> 0 THEN
+    RAISE EXCEPTION 'Conferencia falhou: % ativos, % divergentes. Transacao cancelada.', n_active, n_wrong;
+  END IF;
+END $$;
+
 COMMIT;
+
+-- Resultado esperado: 26 linhas, todas ativas.
+SELECT display_name, protein_per_100g, is_active
+  FROM public.food_catalog
+ WHERE is_active
+ ORDER BY display_name;
