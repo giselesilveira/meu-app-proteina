@@ -107,8 +107,7 @@ function EntryRow({ entry }: { entry: FoodEntry }) {
         <div className="min-w-0">
           <p className="font-semibold leading-snug">{entry.food_name_snapshot}</p>
           <p className="tabular text-[0.95rem] text-mute">
-            {format.grams(entry.amount_g)} · {format.calories(entry.calories_snapshot)}
-            {entry.fat_snapshot !== null ? ` · ${format.fat(entry.fat_snapshot)} gord.` : ""}
+            {format.grams(entry.amount_g)}
           </p>
         </div>
         <p className="tabular shrink-0 text-right text-[1.15rem] font-bold text-copper-dark">{format.protein(entry.protein_snapshot)}</p>
@@ -179,8 +178,7 @@ function EntryRow({ entry }: { entry: FoodEntry }) {
           </select>
           {preview ? (
             <p className="tabular text-[0.95rem] text-cocoa">
-              Proteína {format.protein(preview.protein)} · {format.calories(preview.calories)}
-              {preview.fat !== null ? ` · Gordura ${format.fat(preview.fat)}` : ""}
+              Proteína {format.protein(preview.protein)}
             </p>
           ) : null}
           <div className="flex gap-2">
