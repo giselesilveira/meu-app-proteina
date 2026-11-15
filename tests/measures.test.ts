@@ -5,7 +5,7 @@ import { consumedFor, round } from "@/lib/nutrition";
 // Proteína por 100 g do catálogo original (mesmos valores do SQL).
 const PER100: Record<string, number> = {
   "Ovos Cozidos": 13, "Queijo Minas": 18, "Whey Protein": 80, "Ovos de Codorna": 13,
-  "Iogurte do Tambo": 4.8, "Proteína do Colágeno": 90, "Beef Protein": 90, "Clara de Ovo (de galinha)": 11,
+  "Iogurte do Tambo": 4.8, "Proteína do Colágeno": 90, "Beef Protein": 75, "Clara de Ovo (de galinha)": 11,
 };
 
 /** Simula o trigger do banco: amount_g numeric(7,2) e protein_snapshot numeric(9,3). */
@@ -32,6 +32,11 @@ describe("medidas alternativas", () => {
 
   it("pote de Iogurte do Tambo = 200 g", () => {
     expect(alternateMeasureFor("Iogurte do Tambo", 4.8)!.gramsPerUnit).toBeCloseTo(200, 9);
+  });
+  it("Beef Protein: 1 scoop = 32 g de pó = 24 g de proteína (rótulo)", () => {
+    const m = alternateMeasureFor("Beef Protein", 75)!;
+    expect(m.protein).toBe(24);
+    expect(gramsFromQuantity(1, "units", m)).toBe(32);
   });
   it("modo gramas não converte", () => {
     expect(gramsFromQuantity(120.5, "grams", alternateMeasureFor("Whey Protein", 80))).toBe(120.5);

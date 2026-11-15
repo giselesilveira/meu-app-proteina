@@ -55,7 +55,7 @@ INSERT INTO original_26 (display_name, protein_per_100g) VALUES
   ('Ovos de Codorna', 13),
   ('Iogurte do Tambo', 4.8),
   ('Proteína do Colágeno', 90),
-  ('Beef Protein', 90),
+  ('Beef Protein', 75), -- rotulo: porcao de 32 g = 24 g de proteina
   ('Clara de Ovo (de galinha)', 11),
   ('Sobrecoxa de Frango', 25),
   ('Coxa de Frango', 27),
