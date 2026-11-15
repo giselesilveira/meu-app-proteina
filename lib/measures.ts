@@ -24,7 +24,7 @@ export const ALTERNATE_MEASURES: Record<string, AlternateMeasure> = {
   "Ovos de Codorna": { label: "Unidades", unit: "unidade", protein: 1.3 },
   "Iogurte do Tambo": { label: "Potes (200 g)", unit: "pote de 200 g", protein: 9.6 },
   "Proteína do Colágeno": { label: "Scoops", unit: "scoop", protein: 20 },
-  "Beef Protein": { label: "Scoops", unit: "scoop", protein: 25 },
+  "Beef Protein": { label: "Scoops", unit: "scoop", protein: 24 },
   "Clara de Ovo (de galinha)": { label: "Unidades", unit: "unidade", protein: 3.6 },
 };
 
