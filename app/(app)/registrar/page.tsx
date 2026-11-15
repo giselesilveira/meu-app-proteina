@@ -1,7 +1,7 @@
 import { FoodLogger } from "@/components/food-logger";
 import { PageHeader } from "@/components/ui";
 import { requireAccess } from "@/lib/access";
-import { FOOD_COLUMNS, getFavorites, getRecentFoods, normalizeFood } from "@/lib/data/queries";
+import { FOOD_COLUMNS, getActiveFoods, getFavorites, getRecentFoods, normalizeFood } from "@/lib/data/queries";
 import { addDays, formatLongDate, isISODate, localDateISO } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import type { FoodItem } from "@/lib/types";
@@ -18,10 +18,11 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   const db = await createClient();
   let favorites: FoodItem[] = [];
   let recents: FoodItem[] = [];
+  let allFoods: FoodItem[] = [];
   let initialFood: FoodItem | null = null;
   let loadError = false;
   try {
-    [favorites, recents] = await Promise.all([getFavorites(db), getRecentFoods(db)]);
+    [favorites, recents, allFoods] = await Promise.all([getFavorites(db), getRecentFoods(db), getActiveFoods(db)]);
     if (params.food && /^[0-9a-f-]{36}$/i.test(params.food)) {
       const { data } = await db.from("food_catalog").select(FOOD_COLUMNS).eq("id", params.food).maybeSingle();
       initialFood = data ? normalizeFood(data) : null;
@@ -43,6 +44,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
         isToday={date === today}
         favorites={favorites}
         recents={recents}
+        allFoods={allFoods}
         favoriteIds={favorites.map((f) => f.id)}
         initialFood={initialFood}
         loadError={loadError}
