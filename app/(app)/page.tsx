@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { EntryList } from "@/components/entry-list";
 import { IconCalendar, IconChart, IconPlus, IconStar } from "@/components/icons";
 import { ProgressRing } from "@/components/progress-ring";
@@ -41,6 +42,9 @@ export default async function TodayPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-center rounded-2xl bg-espresso px-4 py-3">
+        <Image src="/MARATONA%20(1).png" alt="Maratona 21 Dias" width={180} height={180} priority className="h-auto w-[140px] max-w-full object-contain sm:w-[180px]" />
+      </div>
       <header>
         <p className="eyebrow">{formatLongDate(today)}</p>
         <h1 className="mt-1 font-serif text-[2.3rem] font-semibold leading-tight">Olá{name ? `, ${name}` : ""}</h1>
