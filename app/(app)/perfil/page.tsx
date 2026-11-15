@@ -1,5 +1,5 @@
 import { InstallHint } from "@/components/install-hint";
-import { GoalsForm, NameForm, ProteinForm } from "@/components/profile-forms";
+import { NameForm, ProteinForm } from "@/components/profile-forms";
 import { IconInfo, IconLogout, IconShield } from "@/components/icons";
 import { Card, PageHeader } from "@/components/ui";
 import { isAdminEmail, requireAccess } from "@/lib/access";
@@ -58,12 +58,6 @@ export default async function ProfilePage() {
           <ProteinForm weightKg={n.weight_kg} factor={n.protein_factor} />
         </Card>
 
-        <Card className="p-5">
-          <h2 className="mb-1 text-lg font-bold">Metas opcionais</h2>
-          <p className="mb-4 text-mute">Preencha somente se a Nutri Gisele orientou. Deixe em branco para apenas acompanhar o consumo.</p>
-          <GoalsForm calorieTarget={n.calorie_target} fatTargetG={n.fat_target_g} />
-        </Card>
-
         <InstallHint />
 
         <Card className="divide-y divide-sand/80">
@@ -92,8 +86,7 @@ export default async function ProfilePage() {
         </Card>
 
         <p className="text-center text-sm text-mute">
-          Este aplicativo é exclusivo para alunas da Nutri Gisele Silveira. As informações nutricionais vêm da Tabela Brasileira de
-          Composição de Alimentos (TACO/NEPA-UNICAMP) ou do rótulo do produto e não substituem a orientação profissional.
+          Este aplicativo é exclusivo para alunas da Nutri Gisele Silveira. Os valores de proteína são referências da calculadora original e não substituem a orientação profissional.
         </p>
       </div>
     </>
