@@ -73,6 +73,18 @@ export async function getFavorites(db: SupabaseClient): Promise<FoodItem[]> {
     .map(normalizeFood);
 }
 
+/** Todos os alimentos ativos (catálogo pequeno), para o menu de seleção. */
+export async function getActiveFoods(db: SupabaseClient): Promise<FoodItem[]> {
+  const { data, error } = await db
+    .from("food_catalog")
+    .select(FOOD_COLUMNS)
+    .eq("is_active", true)
+    .order("display_name", { ascending: true })
+    .limit(200);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(normalizeFood);
+}
+
 export async function getFavoriteIds(db: SupabaseClient): Promise<string[]> {
   const { data } = await db.from("favorite_foods").select("food_id");
   return (data ?? []).map((r) => r.food_id as string);
