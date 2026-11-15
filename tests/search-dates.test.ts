@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { addDays, isCheckinDay, isISODate, localDateISO } from "@/lib/dates";
 import { normalizeEmail, isValidEmail, parseEmailList } from "@/lib/email";
-import { searchTokens } from "@/lib/search";
+import { filterFoods, searchTokens } from "@/lib/search";
 
 describe("termos de busca", () => {
   it("ignora acento, caixa, ordem e gênero", () => {
@@ -38,5 +38,24 @@ describe("e-mail", () => {
     expect(isValidEmail("x@y.com")).toBe(true);
     expect(isValidEmail("sem-arroba")).toBe(false);
     expect(parseEmailList(" A@b.com, c@D.com ,")).toEqual(["a@b.com", "c@d.com"]);
+  });
+});
+
+describe("menu de alimentos (filtro local)", () => {
+  const foods = ["Peito de Frango", "Ovos Cozidos", "Coxa de Frango", "Clara de Ovo (de galinha)", "Ovos de Codorna", "Camarão", "Iogurte do Tambo"].map(
+    (display_name) => ({ display_name }),
+  );
+  it("sem texto: lista completa em ordem alfabética", () => {
+    expect(filterFoods(foods, "").map((f) => f.display_name)).toEqual([
+      "Camarão", "Clara de Ovo (de galinha)", "Coxa de Frango", "Iogurte do Tambo", "Ovos Cozidos", "Ovos de Codorna", "Peito de Frango",
+    ]);
+  });
+  it("filtra ignorando acentos e plural, com quem começa pelo termo primeiro", () => {
+    expect(filterFoods(foods, "ovos").map((f) => f.display_name)).toEqual(["Ovos Cozidos", "Ovos de Codorna", "Clara de Ovo (de galinha)"]);
+    expect(filterFoods(foods, "camarao").map((f) => f.display_name)).toEqual(["Camarão"]);
+    expect(filterFoods(foods, "frango peito").map((f) => f.display_name)).toEqual(["Peito de Frango"]);
+  });
+  it("sem resultado", () => {
+    expect(filterFoods(foods, "arroz")).toEqual([]);
   });
 });
