@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { addFoodEntry, toggleFavorite } from "@/app/(app)/actions";
+import { alternateMeasureFor, gramsFromQuantity } from "@/lib/measures";
 import { consumedFor, format, parseDecimal } from "@/lib/nutrition";
 import { withBasePath } from "@/lib/public-config";
 import { MEALS, type FoodItem, type Meal } from "@/lib/types";
@@ -15,29 +16,6 @@ function sourceLabel(food: FoodItem) {
   if (food.source_type === "label") return `Rótulo${food.brand ? ` · ${food.brand}` : ""}`;
   return "Validado pela equipe";
 }
-
-// Medidas da calculadora original: conversão pela proteína por unidade e por 100 g.
-const UNIT_PROTEIN: Record<string, { label: string; protein: number }> = {
-  "Ovos Cozidos": { label: "Unidades", protein: 6 },
-  "Queijo Minas": { label: "Unidades", protein: 7 },
-  "Whey Protein": { label: "Scoops", protein: 20 },
-  "Ovos de Codorna": { label: "Unidades", protein: 1.3 },
-  "Iogurte do Tambo": { label: "Potes (200 g)", protein: 9.6 },
-  "Proteína do Colágeno": { label: "Scoops", protein: 20 },
-  "Beef Protein": { label: "Scoops", protein: 25 },
-  "Clara de Ovo (de galinha)": { label: "Unidades", protein: 3.6 },
-};
-function unitMeasure(name: string, proteinPer100g?: number) {
-  const item = UNIT_PROTEIN[name];
-  const protein = proteinPer100g ?? ORIGINAL_PROTEIN[name];
-  return item && protein ? { ...item, gramsEquivalent: (item.protein / protein) * 100 } : null;
-}
-const ORIGINAL_PROTEIN: Record<string, number> = {
-  "Ovos Cozidos": 13, "Queijo Minas": 18, "Whey Protein": 80,
-  "Ovos de Codorna": 13, "Iogurte do Tambo": 4.8,
-  "Proteína do Colágeno": 90, "Beef Protein": 90,
-  "Clara de Ovo (de galinha)": 11,
-};
 
 export function FoodLogger(props: {
   date: string;
@@ -226,13 +204,13 @@ function AmountPanel({
   const amountId = useId();
   const [amount, setAmount] = useState("");
   const [unitMode, setUnitMode] = useState<"grams" | "units">("grams");
-  const alternate = unitMeasure(food.display_name);
+  const alternate = alternateMeasureFor(food.display_name, food.protein_per_100g);
   const [meal, setMeal] = useState<Meal | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [favPending, startFav] = useTransition();
   const quantity = parseDecimal(amount);
-  const grams = quantity === null ? null : unitMode === "units" && alternate ? quantity * alternate.gramsEquivalent : quantity;
+  const grams = quantity === null ? null : gramsFromQuantity(quantity, unitMode, alternate);
   const valid = grams !== null && grams > 0 && grams <= 3000;
   const preview = valid ? consumedFor(food, grams!) : null;
 
@@ -303,12 +281,19 @@ function AmountPanel({
             id={amountId}
             className="input text-[1.4rem] font-bold"
             inputMode="decimal"
-            placeholder="Ex.: 120"
+            placeholder={unitMode === "units" ? "Ex.: 2" : "Ex.: 120"}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && add()}
             autoFocus
           />
+          {amount.trim() && !valid ? (
+            <p className="mt-2 text-sm font-semibold text-danger" role="alert">
+              {quantity !== null && grams !== null && grams > 3000
+                ? "Quantidade acima do limite (equivalente a 3 kg)."
+                : "Digite um número maior que zero (ex.: 1,5)."}
+            </p>
+          ) : null}
         </div>
 
         <div className="mt-5 rounded-xl bg-espresso p-4 text-cream" aria-live="polite">
@@ -317,8 +302,15 @@ function AmountPanel({
               <div>
                 <dt className="text-[0.8125rem] text-sand/75 min-[400px]:uppercase min-[400px]:tracking-[0.1em]">Proteína</dt>
                 <dd className="tabular whitespace-nowrap text-[clamp(1rem,4.8vw,1.35rem)] font-bold text-gold">{format.protein(preview.protein)}</dd>
+                {unitMode === "units" ? (
+                  <dd className="mt-1 text-sm text-sand/80">equivale a {format.grams(grams!)}</dd>
+                ) : null}
               </div>
             </dl>
+          ) : unitMode === "units" && alternate ? (
+            <p className="text-center text-sand/80">
+              1 {alternate.unit}: {format.protein(alternate.protein)} de proteína
+            </p>
           ) : (
             <p className="text-center text-sand/80">
               Em 100 g: {format.protein(food.protein_per_100g)} de proteína
