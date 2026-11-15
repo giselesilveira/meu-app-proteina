@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
 import { addFoodEntry, toggleFavorite } from "@/app/(app)/actions";
 import { alternateMeasureFor, gramsFromQuantity } from "@/lib/measures";
 import { consumedFor, format, parseDecimal } from "@/lib/nutrition";
+import { filterFoods } from "@/lib/search";
 import { withBasePath } from "@/lib/public-config";
 import { MEALS, type FoodItem, type Meal } from "@/lib/types";
 import { IconChevronLeft, IconSearch, IconStar } from "./icons";
@@ -22,6 +23,7 @@ export function FoodLogger(props: {
   isToday: boolean;
   favorites: FoodItem[];
   recents: FoodItem[];
+  allFoods?: FoodItem[];
   favoriteIds: string[];
   initialFood: FoodItem | null;
   loadError: boolean;
@@ -64,21 +66,39 @@ export function FoodLogger(props: {
         </div>
       ) : null}
       {props.loadError ? <Notice tone="error">Não conseguimos carregar seus favoritos agora.</Notice> : null}
-      <FoodSearch onSelect={setSelected} />
+      <FoodSearch foods={props.allFoods ?? []} onSelect={setSelected} />
       <FoodGroup title="Favoritos" foods={props.favorites} onSelect={setSelected} />
       <FoodGroup title="Usados recentemente" foods={props.recents.filter((r) => !props.favorites.some((f) => f.id === r.id))} onSelect={setSelected} />
     </div>
   );
 }
 
-function FoodSearch({ onSelect }: { onSelect: (f: FoodItem) => void }) {
+function FoodSearch({ foods, onSelect }: { foods: FoodItem[]; onSelect: (f: FoodItem) => void }) {
   const inputId = useId();
+  const listId = useId();
   const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
   const [results, setResults] = useState<FoodItem[] | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "offline">("idle");
   const controller = useRef<AbortController | null>(null);
+  const boxRef = useRef<HTMLElement | null>(null);
+  // Catálogo pequeno: a lista completa vem do servidor e é filtrada aqui, na hora.
+  // Se a lista não carregar, volta para a busca no servidor.
+  const local = foods.length > 0;
+  const filtered = useMemo(() => (local ? filterFoods(foods, query) : []), [local, foods, query]);
+
+  // Fecha o menu ao tocar fora dele.
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: PointerEvent) {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [open]);
 
   useEffect(() => {
+    if (local) return;
     const q = query.trim();
     if (q.length < 2) {
       setResults(null);
@@ -106,10 +126,21 @@ function FoodSearch({ onSelect }: { onSelect: (f: FoodItem) => void }) {
       }
     }, 250);
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, local]);
+
+  function choose(f: FoodItem) {
+    setOpen(false);
+    onSelect(f);
+  }
+
+  const notFound = (
+    <div className="rounded-xl bg-sand/50 px-4 py-4 text-mute">
+      Nenhum alimento encontrado para “{query.trim()}”. Tente outra palavra, como o nome principal do alimento.
+    </div>
+  );
 
   return (
-    <section>
+    <section ref={boxRef}>
       <label htmlFor={inputId} className="label">
         Buscar alimento
       </label>
@@ -120,26 +151,44 @@ function FoodSearch({ onSelect }: { onSelect: (f: FoodItem) => void }) {
           type="search"
           autoComplete="off"
           enterKeyHint="search"
-          placeholder="Ex.: frango, ovos, whey"
+          placeholder="Toque para ver a lista ou digite"
           className="input pl-12"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          role={local ? "combobox" : undefined}
+          aria-expanded={local ? open : undefined}
+          aria-controls={local ? listId : undefined}
+          onPointerDown={() => setOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") setOpen(true);
+            if (e.key === "Escape") setOpen(false);
+            if (e.key === "Enter" && local && open && filtered.length === 1) choose(filtered[0]);
+          }}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
           autoFocus
         />
       </div>
       <div aria-live="polite" className="mt-3">
-        {status === "loading" ? <Spinner label="Buscando…" /> : null}
-        {status === "error" ? <Notice tone="error">Não conseguimos buscar agora. Tente novamente em instantes.</Notice> : null}
-        {status === "offline" ? <Notice tone="error">Você está sem internet. Conecte-se para buscar alimentos.</Notice> : null}
-        {results && status === "idle" ? (
-          results.length === 0 ? (
-            <div className="rounded-xl bg-sand/50 px-4 py-4 text-mute">
-              Nenhum alimento encontrado para “{query.trim()}”. Tente outra palavra, como o nome principal do alimento.
-            </div>
-          ) : (
-            <FoodList foods={results} onSelect={onSelect} />
-          )
-        ) : null}
+        {local ? (
+          open ? (
+            filtered.length === 0 ? (
+              notFound
+            ) : (
+              <div id={listId} className="max-h-[55vh] overflow-y-auto overscroll-contain rounded-2xl">
+                <FoodList foods={filtered} onSelect={choose} />
+              </div>
+            )
+          ) : null
+        ) : (
+          <>
+            {status === "loading" ? <Spinner label="Buscando…" /> : null}
+            {status === "error" ? <Notice tone="error">Não conseguimos buscar agora. Tente novamente em instantes.</Notice> : null}
+            {status === "offline" ? <Notice tone="error">Você está sem internet. Conecte-se para buscar alimentos.</Notice> : null}
+            {results && status === "idle" ? (results.length === 0 ? notFound : <FoodList foods={results} onSelect={choose} />) : null}
+          </>
+        )}
       </div>
     </section>
   );
