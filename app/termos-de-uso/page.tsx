@@ -54,8 +54,8 @@ export default function TermsPage() {
 
       <Section id="prazo" title="3. Prazo de acesso">
         <p>
-          O acesso ao aplicativo é válido por <strong>6 (seis) meses a partir da confirmação da compra</strong>. Ao fim desse
-          prazo, o acesso é encerrado. Os seus registros ficam guardados conforme a Política de Privacidade e voltam a ficar
+          O acesso ao aplicativo é válido <strong>durante o período do programa</strong>. Ao fim desse período, o acesso é
+          encerrado. Os seus registros ficam guardados conforme a Política de Privacidade e voltam a ficar
           disponíveis se houver nova contratação.
         </p>
       </Section>
