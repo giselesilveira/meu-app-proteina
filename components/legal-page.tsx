@@ -9,7 +9,7 @@ import { Wordmark } from "./brand";
  */
 export const LEGAL_REVIEW_PENDING = true;
 
-export const LEGAL_UPDATED_AT = "21 de outubro de 2026";
+export const LEGAL_UPDATED_AT = "16 de novembro de 2026";
 
 export const RESPONSIBLE = {
   company: "Gisele da Silva Silveira Ltda",
