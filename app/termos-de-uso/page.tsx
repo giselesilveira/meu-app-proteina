@@ -71,9 +71,8 @@ export default function TermsPage() {
       <Section id="estimativas" title="5. Limitações das informações nutricionais">
         <ul>
           <li>
-            Os valores nutricionais vêm principalmente da Tabela Brasileira de Composição de Alimentos (TACO), da Universidade
-            Estadual de Campinas (NEPA/UNICAMP), ou do rótulo do produto. São <strong>valores de referência</strong>: a composição
-            real de um alimento pode variar conforme marca, safra, corte, preparo e porção.
+            Os valores de proteína do aplicativo são <strong>valores de referência</strong>: a composição real de um alimento pode
+            variar conforme marca, safra, corte, preparo e porção.
           </li>
           <li>
             Os cálculos dependem das quantidades informadas por você. Quantidades estimadas ou registradas de forma incorreta
@@ -134,7 +133,7 @@ export default function TermsPage() {
         <p>
           A marca {RESPONSIBLE.brand}, o nome Maratona 21, os textos, o visual, o código e os demais conteúdos do aplicativo
           pertencem à {RESPONSIBLE.company} ou são usados com autorização. É proibido copiar, reproduzir, distribuir ou criar obras
-          derivadas sem autorização por escrito. A Tabela TACO é uma publicação do NEPA/UNICAMP e é citada como fonte.
+          derivadas sem autorização por escrito.
         </p>
       </Section>
 
