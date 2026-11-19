@@ -357,3 +357,41 @@ export async function updateName(fullName: string): Promise<ActionResult> {
   return { ok: true, message: "Nome atualizado." };
 }
 
+// ---------------------------------------------------------------- água
+
+const addWaterSchema = z.object({
+  amountMl: z.number().int().min(1, "Informe a quantidade em ml.").max(5000, "Confira a quantidade (máximo 5 litros por vez)."),
+  date: z.string(),
+});
+
+export async function addWater(input: z.input<typeof addWaterSchema>): Promise<ActionResult> {
+  const access = await accessForAction();
+  if (!access) return { ok: false, error: await actionDeniedMessage() };
+  const parsed = addWaterSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Confira os dados." };
+  if (!validDay(access, parsed.data.date)) return { ok: false, error: "Escolha uma data válida." };
+  try {
+    const db = await createClient();
+    const { error } = await db.from("water_entries").insert({ amount_ml: parsed.data.amountMl, entry_date: parsed.data.date });
+    if (error) throw new Error(error.message);
+  } catch (e) {
+    return fail(e, "addWater");
+  }
+  revalidateApp();
+  return { ok: true, message: "Água registrada." };
+}
+
+export async function deleteWater(id: string): Promise<ActionResult> {
+  const access = await accessForAction();
+  if (!access) return { ok: false, error: await actionDeniedMessage() };
+  if (!z.string().uuid().safeParse(id).success) return { ok: false, error: "Registro não encontrado." };
+  try {
+    const db = await createClient();
+    const { error } = await db.from("water_entries").delete().eq("id", id);
+    if (error) throw new Error(error.message);
+  } catch (e) {
+    return fail(e, "deleteWater");
+  }
+  revalidateApp();
+  return { ok: true, message: "Registro removido." };
+}
