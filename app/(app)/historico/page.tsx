@@ -2,10 +2,11 @@ import Link from "next/link";
 import { IconCheck, IconChevronLeft, IconChevronRight } from "@/components/icons";
 import { EmptyState, Notice, PageHeader } from "@/components/ui";
 import { requireAccess } from "@/lib/access";
-import { getCheckins, getEntriesBetween, getTargetHistory, targetForDate } from "@/lib/data/queries";
+import { getCheckins, getEntriesBetween, getTargetHistory, getWaterBetween, targetForDate, type WaterEntry } from "@/lib/data/queries";
 import { addDays, formatDayMonth, localDateISO } from "@/lib/dates";
 import { format, progress, sumEntries } from "@/lib/nutrition";
 import { createClient } from "@/lib/supabase/server";
+import { formatWater, waterGoalMl, weightOnDate } from "@/lib/water";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Seu histórico" };
@@ -20,12 +21,23 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
   const from = addDays(to, -(PAGE_DAYS - 1));
   const db = await createClient();
 
-  let days: { date: string; protein: number; count: number; target: number; checkin: boolean }[] = [];
+  let days: { date: string; protein: number; count: number; target: number; checkin: boolean; waterMl: number; waterGoal: number }[] = [];
   let failed = false;
   try {
     const [entries, history, checkins] = await Promise.all([getEntriesBetween(db, from, to), getTargetHistory(db), getCheckins(db)]);
+    // Água à parte: se falhar, o histórico de proteína aparece normalmente.
+    let water: WaterEntry[] = [];
+    try {
+      water = await getWaterBetween(db, from, to);
+    } catch (error) {
+      console.error("[historico:water]", error instanceof Error ? error.message : error);
+    }
     const checkinDates = new Set(checkins.map((c) => c.checkin_date));
-    const dates = new Set<string>([...entries.map((e) => e.entry_date), ...[...checkinDates].filter((d) => d >= from && d <= to)]);
+    const dates = new Set<string>([
+      ...entries.map((e) => e.entry_date),
+      ...water.map((w) => w.entry_date),
+      ...[...checkinDates].filter((d) => d >= from && d <= to),
+    ]);
     days = [...dates]
       .sort((a, b) => (a < b ? 1 : -1))
       .map((date) => {
@@ -37,6 +49,8 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
           count: dayEntries.length,
           target: targetForDate(history, date)?.protein_target_g ?? access.nutrition!.protein_target_g,
           checkin: checkinDates.has(date),
+          waterMl: water.filter((w) => w.entry_date === date).reduce((sum, w) => sum + w.amount_ml, 0),
+          waterGoal: waterGoalMl(weightOnDate(date, access.nutrition!.weight_kg, history, checkins)),
         };
       });
   } catch (e) {
@@ -72,6 +86,12 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                     {d.count} {d.count === 1 ? "alimento" : "alimentos"}
                     {d.checkin ? " · check-in" : ""}
                   </p>
+                  {d.waterMl > 0 ? (
+                    <p className="tabular text-sm text-[#2f6f95]">
+                      Água: {formatWater(d.waterMl)} de {formatWater(d.waterGoal)}
+                      {d.waterMl >= d.waterGoal ? " ✓" : ""}
+                    </p>
+                  ) : null}
                 </div>
                 <IconChevronRight className="shrink-0 text-taupe" />
               </Link>
