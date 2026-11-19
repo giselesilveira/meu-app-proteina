@@ -108,3 +108,9 @@ export const IconShield = (p: IconProps) => (
     <path d="M12 3.5l7 3v5c0 4.4-3 7.8-7 9-4-1.2-7-4.6-7-9v-5z" />
   </Base>
 );
+
+export const IconDrop = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M12 3.5c-3 3.8-6 7.2-6 10.4a6 6 0 0 0 12 0c0-3.2-3-6.6-6-10.4Z" />
+  </Base>
+);

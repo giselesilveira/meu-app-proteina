@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import { EntryList } from "@/components/entry-list";
 import { IconChevronLeft, IconChevronRight, IconPlus } from "@/components/icons";
 import { ButtonLink, Card, Notice, PageHeader, Stat } from "@/components/ui";
+import { WaterCard, type WaterItem } from "@/components/water-card";
 import { requireAccess } from "@/lib/access";
-import { getCheckins, getEntriesForDay, getTargetHistory, targetForDate } from "@/lib/data/queries";
+import { getCheckins, getEntriesForDay, getTargetHistory, getWaterBetween, targetForDate } from "@/lib/data/queries";
 import { addDays, formatLongDate, isISODate, localDateISO } from "@/lib/dates";
 import { format, progress, sumEntries } from "@/lib/nutrition";
 import { createClient } from "@/lib/supabase/server";
+import { toWaterItems, waterGoalMl, weightOnDate } from "@/lib/water";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,13 @@ export default async function DayPage({ params }: { params: Promise<{ date: stri
     const totals = sumEntries(entries);
     const p = progress(target?.protein_target_g ?? access.nutrition!.protein_target_g, totals.protein);
     const checkin = checkins.find((c) => c.checkin_date === date);
+    const weightKg = weightOnDate(date, access.nutrition!.weight_kg, history, checkins);
+    let water: WaterItem[] | null = null;
+    try {
+      water = toWaterItems(await getWaterBetween(db, date, date), access.timezone);
+    } catch (error) {
+      console.error("[dia:water]", error instanceof Error ? error.message : error);
+    }
 
     return (
       <>
@@ -53,6 +62,18 @@ export default async function DayPage({ params }: { params: Promise<{ date: stri
             <IconPlus size={20} /> Registrar alimento neste dia
           </ButtonLink>
         </section>
+
+        {water ? (
+          <div className="mb-6">
+            <WaterCard
+              date={date}
+              goalMl={waterGoalMl(weightKg)}
+              weightKg={weightKg}
+              items={water}
+              title={date === today ? "Água de hoje" : "Água do dia"}
+            />
+          </div>
+        ) : null}
 
         {checkin ? (
           <Card className="p-5">
