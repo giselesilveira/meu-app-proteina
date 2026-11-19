@@ -4,12 +4,14 @@ import logo from "@/public/MARATONA (1).png";
 import { EntryList } from "@/components/entry-list";
 import { IconCalendar, IconChart, IconPlus, IconStar } from "@/components/icons";
 import { ProgressRing } from "@/components/progress-ring";
+import { WaterCard, type WaterItem } from "@/components/water-card";
 import { ButtonLink, Card, Notice } from "@/components/ui";
 import { requireAccess } from "@/lib/access";
-import { getCheckins, getEntriesForDay, getFavorites } from "@/lib/data/queries";
+import { getCheckins, getEntriesForDay, getFavorites, getTargetHistory, getWaterBetween } from "@/lib/data/queries";
 import { formatLongDate, isCheckinDay, localDateISO } from "@/lib/dates";
 import { format, progress, sumEntries } from "@/lib/nutrition";
 import { createClient } from "@/lib/supabase/server";
+import { toWaterItems, waterGoalMl, weightOnDate } from "@/lib/water";
 
 export const dynamic = "force-dynamic";
 
@@ -27,14 +29,24 @@ export default async function TodayPage() {
   let entries: Awaited<ReturnType<typeof getEntriesForDay>> = [];
   let favorites: Awaited<ReturnType<typeof getFavorites>> = [];
   let checkedInToday = false;
+  let weightKg = nutrition.weight_kg;
   try {
-    const [e, f, c] = await Promise.all([getEntriesForDay(db, today), getFavorites(db), getCheckins(db)]);
+    const [e, f, c, h] = await Promise.all([getEntriesForDay(db, today), getFavorites(db), getCheckins(db), getTargetHistory(db)]);
     entries = e;
     favorites = f.slice(0, 6);
     checkedInToday = c.some((x) => x.checkin_date === today);
+    weightKg = weightOnDate(today, nutrition.weight_kg, h, c);
   } catch (error) {
     console.error("[today]", error instanceof Error ? error.message : error);
     loadError = true;
+  }
+
+  // Água: carregada à parte para que uma falha aqui não afete o restante da tela.
+  let water: WaterItem[] | null = null;
+  try {
+    water = toWaterItems(await getWaterBetween(db, today, today), access.timezone);
+  } catch (error) {
+    console.error("[today:water]", error instanceof Error ? error.message : error);
   }
 
   const totals = sumEntries(entries);
@@ -88,6 +100,9 @@ export default async function TodayPage() {
       <ButtonLink href="/registrar" variant="copper" className="w-full text-[1.15rem]">
         <IconPlus size={24} /> Registrar alimento
       </ButtonLink>
+
+      {/* Água */}
+      {water ? <WaterCard date={today} goalMl={waterGoalMl(weightKg)} weightKg={weightKg} items={water} /> : null}
 
       {/* 3. Favoritos */}
       {favorites.length > 0 ? (
