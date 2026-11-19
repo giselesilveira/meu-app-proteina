@@ -114,6 +114,7 @@ export async function getRecentFoods(db: SupabaseClient, limit = 8): Promise<Foo
 
 export interface TargetSnapshot {
   effective_date: string;
+  weight_kg: number | null;
   protein_target_g: number;
   calorie_target: number | null;
   fat_target_g: number | null;
@@ -123,11 +124,11 @@ export interface TargetSnapshot {
 export async function getTargetHistory(db: SupabaseClient): Promise<TargetSnapshot[]> {
   const { data, error } = await db
     .from("nutrition_target_history")
-    .select("effective_date, protein_target_g, calorie_target, fat_target_g")
+    .select("effective_date, weight_kg, protein_target_g, calorie_target, fat_target_g")
     .order("effective_date", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map((r) =>
-    toNumbers(r as TargetSnapshot, ["protein_target_g", "calorie_target", "fat_target_g"]),
+    toNumbers(r as TargetSnapshot, ["weight_kg", "protein_target_g", "calorie_target", "fat_target_g"]),
   );
 }
 
@@ -150,4 +151,24 @@ export async function getCheckins(db: SupabaseClient): Promise<BodyCheckin[]> {
   return (data ?? []).map((r) =>
     toNumbers(r as BodyCheckin, ["weight_kg", "waist_cm", "abdomen_cm", "hip_cm"]),
   );
+}
+
+export interface WaterEntry {
+  id: string;
+  entry_date: string;
+  amount_ml: number;
+  created_at: string;
+}
+
+/** Água registrada entre duas datas (inclusive), da mais antiga para a mais nova. */
+export async function getWaterBetween(db: SupabaseClient, from: string, to: string): Promise<WaterEntry[]> {
+  const { data, error } = await db
+    .from("water_entries")
+    .select("id, entry_date, amount_ml, created_at")
+    .gte("entry_date", from)
+    .lte("entry_date", to)
+    .order("created_at", { ascending: true })
+    .limit(3000);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => ({ ...(r as WaterEntry), amount_ml: Number(r.amount_ml) }));
 }
